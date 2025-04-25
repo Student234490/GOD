@@ -34,6 +34,11 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define LSM9DS1_MAG_ADDRESS   0x1E // Would be 0x1C if SDO_M is LOW
+
+#define OUT_X_L_M   0x28 //
+#define OUT_Y_L_M   0x2A //
+#define OUT_Z_L_M   0x2C //
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -42,7 +47,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-SPI_HandleTypeDef hspi1;
+I2C_HandleTypeDef hi2c3;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
@@ -55,8 +60,8 @@ UART_HandleTypeDef huart2;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
-static void MX_SPI1_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_I2C3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -73,7 +78,6 @@ static void MX_USART1_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t uart1_rx_buffer[64]; // adjust size as needed
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -95,9 +99,12 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-  MX_SPI1_Init();
   MX_USART1_UART_Init();
+  MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
+  uint8_t ctrl_reg3_data[2] = { 0x22, 0x00 };
+  HAL_I2C_Master_Transmit(&hi2c3, LSM9DS1_MAG_ADDRESS << 1, ctrl_reg3_data, 2, HAL_MAX_DELAY);
+  HAL_Delay(10);
 
   /* USER CODE END 2 */
 
@@ -105,8 +112,33 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  //printf("Loop begun");
 
-	  uint8_t rx_byte;
+	  //I2C_Scan(&hi2c3);
+
+	  // Magnetometer example code
+	  /*uint16_t buffer;
+	  HAL_I2C_Master_Transmit(&hi2c3, LSM9DS1_MAG_ADDRESS << 1, OUT_X_L_M, 1, HAL_MAX_DELAY);
+	  HAL_I2C_Master_Receive(&hi2c3, LSM9DS1_MAG_ADDRESS << 1 | 0x01, buffer, sizeof(buffer), HAL_MAX_DELAY);
+	  printf("%d\n", buffer);
+	  */
+	  uint8_t reg = OUT_X_L_M | 0x80; // Enable auto-increment
+	  uint8_t data[6]; // X_L, X_H, Y_L, Y_H, Z_L, Z_H
+
+	  // Request starting from OUT_X_L_M with auto-increment
+	  HAL_I2C_Master_Transmit(&hi2c3, LSM9DS1_MAG_ADDRESS << 1, &reg, 1, HAL_MAX_DELAY);
+	  HAL_I2C_Master_Receive(&hi2c3, (LSM9DS1_MAG_ADDRESS << 1) | 0x01, data, 6, HAL_MAX_DELAY);
+
+	  // Combine bytes into signed 16-bit integers
+	  int16_t mag_x = (int16_t)(data[1] << 8 | data[0]);
+	  int16_t mag_y = (int16_t)(data[3] << 8 | data[2]);
+	  int16_t mag_z = (int16_t)(data[5] << 8 | data[4]);
+
+	  printf("Magnetometer: X=%d, Y=%d, Z=%d\n\r", mag_x, mag_y, mag_z);
+	  HAL_Delay(1000);
+
+	  // GPS EXAMPLE CODE
+	  /*uint8_t rx_byte;
 	  while (1)
 	  {
 	      if (HAL_UART_Receive(&huart1, &rx_byte, 1, 100) == HAL_OK)
@@ -114,9 +146,9 @@ int main(void)
 	          // Echo byte to USART2 for debugging
 	    	  HAL_UART_Transmit(&huart2, &rx_byte, 1, HAL_MAX_DELAY);
 	      }
-	  }
+	  }*/
 
-	  printf("Hello from STM32!\r\n");
+	  //printf("Hello from STM32!\r\n");
 
     /* USER CODE END WHILE */
 
@@ -164,41 +196,48 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief SPI1 Initialization Function
+  * @brief I2C3 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_SPI1_Init(void)
+static void MX_I2C3_Init(void)
 {
 
-  /* USER CODE BEGIN SPI1_Init 0 */
+  /* USER CODE BEGIN I2C3_Init 0 */
 
-  /* USER CODE END SPI1_Init 0 */
+  /* USER CODE END I2C3_Init 0 */
 
-  /* USER CODE BEGIN SPI1_Init 1 */
+  /* USER CODE BEGIN I2C3_Init 1 */
 
-  /* USER CODE END SPI1_Init 1 */
-  /* SPI1 parameter configuration*/
-  hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_SLAVE;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_4BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 7;
-  hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
-  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  /* USER CODE END I2C3_Init 1 */
+  hi2c3.Instance = I2C3;
+  hi2c3.Init.Timing = 0x0010061A;
+  hi2c3.Init.OwnAddress1 = 0;
+  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c3.Init.OwnAddress2 = 0;
+  hi2c3.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN SPI1_Init 2 */
+  /** Configure Analogue filter
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c3, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure Digital filter
+  */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c3, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C3_Init 2 */
 
-  /* USER CODE END SPI1_Init 2 */
+  /* USER CODE END I2C3_Init 2 */
 
 }
 
@@ -308,11 +347,15 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
 }
 
 /* USER CODE BEGIN 4 */
 
+//
+// code for setting printf to uart
+//
 extern UART_HandleTypeDef huart2;
 
 int _write(int file, char *data, int len)
@@ -320,6 +363,30 @@ int _write(int file, char *data, int len)
     HAL_UART_Transmit(&huart2, (uint8_t*)data, len, HAL_MAX_DELAY);
     return len;
 }
+
+//
+// code for testing I2C
+//
+
+void I2C_Scan(I2C_HandleTypeDef *hi2c) {
+    HAL_StatusTypeDef result;
+    uint8_t i;
+
+    printf("Scanning I2C bus...\r\n");
+
+    for (i = 1; i < 128; i++) {
+        // Left-shift by 1 to form 8-bit address
+        result = HAL_I2C_IsDeviceReady(hi2c, (i << 1), 1, 10);
+
+        if (result == HAL_OK) {
+            printf("I2C device found at address 0x%02X\r\n", i);
+        }
+    }
+
+    printf("Scan complete.\r\n");
+}
+
+
 
 /* USER CODE END 4 */
 
