@@ -105,17 +105,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-	  uint8_t rx_byte;
-	  while (1)
-	  {
-	      if (HAL_UART_Receive(&huart1, &rx_byte, 1, 100) == HAL_OK)
-	      {
-	          // Echo byte to USART2 for debugging
-	    	  HAL_UART_Transmit(&huart2, &rx_byte, 1, HAL_MAX_DELAY);
-	      }
-	  }
-
 	  printf("Hello from STM32!\r\n");
 
     /* USER CODE END WHILE */
