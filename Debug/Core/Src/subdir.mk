@@ -6,6 +6,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Core/Src/fixp.c \
+../Core/Src/gps.c \
 ../Core/Src/luts.c \
 ../Core/Src/main.c \
 ../Core/Src/stm32g4xx_hal_msp.c \
@@ -16,6 +17,7 @@ C_SRCS += \
 
 OBJS += \
 ./Core/Src/fixp.o \
+./Core/Src/gps.o \
 ./Core/Src/luts.o \
 ./Core/Src/main.o \
 ./Core/Src/stm32g4xx_hal_msp.o \
@@ -26,6 +28,7 @@ OBJS += \
 
 C_DEPS += \
 ./Core/Src/fixp.d \
+./Core/Src/gps.d \
 ./Core/Src/luts.d \
 ./Core/Src/main.d \
 ./Core/Src/stm32g4xx_hal_msp.d \
@@ -42,7 +45,7 @@ Core/Src/%.o: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/fixp.d ./Core/Src/fixp.o ./Core/Src/luts.d ./Core/Src/luts.o ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/stm32g4xx_hal_msp.d ./Core/Src/stm32g4xx_hal_msp.o ./Core/Src/stm32g4xx_it.d ./Core/Src/stm32g4xx_it.o ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/system_stm32g4xx.d ./Core/Src/system_stm32g4xx.o
+	-$(RM) ./Core/Src/fixp.d ./Core/Src/fixp.o ./Core/Src/gps.d ./Core/Src/gps.o ./Core/Src/luts.d ./Core/Src/luts.o ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/stm32g4xx_hal_msp.d ./Core/Src/stm32g4xx_hal_msp.o ./Core/Src/stm32g4xx_it.d ./Core/Src/stm32g4xx_it.o ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/system_stm32g4xx.d ./Core/Src/system_stm32g4xx.o
 
 .PHONY: clean-Core-2f-Src
 

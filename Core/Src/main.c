@@ -26,6 +26,7 @@
 #include "stm32g4xx_hal.h"
 #include "fixp.h"
 #include "luts.h"
+#include "gps.h"
 
 /* USER CODE END Includes */
 
@@ -65,7 +66,8 @@ static void MX_USART1_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint8_t rx_buffer[1];
+RingBuffer uart_rx_buf = { .head = 0, .tail = 0 };
 /* USER CODE END 0 */
 
 /**
@@ -83,7 +85,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -99,15 +100,17 @@ int main(void)
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_UART_Receive_IT(&huart1, rx_buffer, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  HAL_Delay(500);
+	  process_uart_data(&uart_rx_buf);
+	  printf("\r\n");
     /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -303,10 +306,21 @@ static void MX_GPIO_Init(void)
 
 extern UART_HandleTypeDef huart2;
 
+/**
+ * @brief This is necessary to write to the USB port with Putty
+ */
+
 int _write(int file, char *data, int len)
 {
     HAL_UART_Transmit(&huart2, (uint8_t*)data, len, HAL_MAX_DELAY);
     return len;
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	if (huart == &huart1) {
+		 RingBuffer_Write(&uart_rx_buf, rx_buffer[0]);
+		 HAL_UART_Receive_IT(&huart1, rx_buffer, 1);  // Re-arm
+	}
 }
 
 /* USER CODE END 4 */
