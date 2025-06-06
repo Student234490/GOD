@@ -27,23 +27,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000030  00000000  00000000  00020070  2**0
                   CONTENTS, READONLY
- 12 .debug_info   00012d11  00000000  00000000  000200a0  2**0
+ 12 .debug_info   0001358c  00000000  00000000  000200a0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 0000253b  00000000  00000000  00032db1  2**0
+ 13 .debug_abbrev 000025fa  00000000  00000000  0003362c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 00000ce8  00000000  00000000  000352f0  2**3
+ 14 .debug_aranges 00000ce8  00000000  00000000  00035c28  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_ranges 00000c00  00000000  00000000  00035fd8  2**3
+ 15 .debug_ranges 00000c00  00000000  00000000  00036910  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  0001cbf7  00000000  00000000  00036bd8  2**0
+ 16 .debug_macro  0001cd55  00000000  00000000  00037510  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   0000f79b  00000000  00000000  000537cf  2**0
+ 17 .debug_line   0000f97a  00000000  00000000  00054265  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000ba9bf  00000000  00000000  00062f6a  2**0
+ 18 .debug_str    000ba9af  00000000  00000000  00063bdf  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  0011d929  2**0
+ 19 .comment      00000053  00000000  00000000  0011e58e  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00003c34  00000000  00000000  0011d97c  2**2
+ 20 .debug_frame  00003c34  00000000  00000000  0011e5e4  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -412,10 +412,10 @@ Disassembly of section .text:
  80005b6:	bf00      	nop
 
 080005b8 <RingBuffer_Write>:
- */
 
 #include "gps.h"
 #include <stdint.h>
+#include <stdio.h> // used for printing
 
 void RingBuffer_Write(RingBuffer *rb, uint8_t byte) {
  80005b8:	b480      	push	{r7}
@@ -620,7 +620,7 @@ int main(void)
   MX_USART1_UART_Init();
  80006ec:	f000 f892 	bl	8000814 <MX_USART1_UART_Init>
   /* USER CODE BEGIN 2 */
-  HAL_UART_Receive_IT(&huart1, rx_buffer, GPSLEN);
+  HAL_UART_Receive_IT(&huart1, rx_buffer, 1);
  80006f0:	2201      	movs	r2, #1
  80006f2:	4907      	ldr	r1, [pc, #28]	; (8000710 <main+0x3c>)
  80006f4:	4807      	ldr	r0, [pc, #28]	; (8000714 <main+0x40>)
@@ -1127,7 +1127,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
  80009b4:	4619      	mov	r1, r3
  80009b6:	4808      	ldr	r0, [pc, #32]	; (80009d8 <HAL_UART_RxCpltCallback+0x38>)
  80009b8:	f7ff fdfe 	bl	80005b8 <RingBuffer_Write>
-		 HAL_UART_Receive_IT(&huart1, rx_buffer, GPSLEN);  // Re-arm
+		 HAL_UART_Receive_IT(&huart1, rx_buffer, 1);  // Re-arm
  80009bc:	2201      	movs	r2, #1
  80009be:	4905      	ldr	r1, [pc, #20]	; (80009d4 <HAL_UART_RxCpltCallback+0x34>)
  80009c0:	4803      	ldr	r0, [pc, #12]	; (80009d0 <HAL_UART_RxCpltCallback+0x30>)

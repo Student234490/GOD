@@ -66,8 +66,8 @@ static void MX_USART1_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t rx_buffer[1];
-RingBuffer uart_rx_buf = { .head = 0, .tail = 0 };
+uint8_t rx_buffer[1]; // stores the data from every interrupt
+RingBuffer uart_rx_buf = { .head = 0, .tail = 0 }; // stores every rx_buffer in a ring buffer, see interrupt function
 /* USER CODE END 0 */
 
 /**
