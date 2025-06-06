@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "stm32g4xx_hal.h"
+#include "fixp.h"
+#include "luts.h"
 
 /* USER CODE END Includes */
 
@@ -73,7 +75,6 @@ static void MX_USART1_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t uart1_rx_buffer[64]; // adjust size as needed
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -105,8 +106,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  printf("Hello from STM32!\r\n");
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
