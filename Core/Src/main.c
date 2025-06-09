@@ -101,15 +101,16 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_UART_Receive_IT(&huart1, rx_buffer, 1);
+  GPSRead_t GPS;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_Delay(500);
-	  process_uart_data(&uart_rx_buf);
-	  printf("\r\n");
+	  HAL_Delay(10);
+	  process_uart_data(&uart_rx_buf, &GPS);
+	  //printf("\r\n");
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
   }
