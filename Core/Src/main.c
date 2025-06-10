@@ -139,6 +139,7 @@ int main(void)
   I2C_Scan(&hi2c3);
   while (1)
   {
+	  for (int i = 0; i < 10; i++) { //////////////////////////////acc cali
 	  //printf("Loop begun");
 
 
@@ -172,9 +173,54 @@ int main(void)
 	  int16_t mag_y = (int16_t)(data2[3] << 8 | data2[2]);
 	  int16_t mag_z = (int16_t)(data2[5] << 8 | data2[4]);
 
-	  printf("%d,%d,%d,%d,%d,%d,\n\r", mag_x, mag_y, mag_z, acc_x,acc_y,acc_z);
-	  HAL_Delay(1000);
+	  /////////////////////////////////////////////////////// HER LAVER RASMUS KÆMPE YUM YUM //////////////////////////////////////////////////////////////////////////////////
+	  // Static arrays to store [min, max] for each axis
+	  static int16_t mag_x_minmax[2] = {INT16_MAX, INT16_MIN};
+	  static int16_t mag_y_minmax[2] = {INT16_MAX, INT16_MIN};
+	  static int16_t mag_z_minmax[2] = {INT16_MAX, INT16_MIN};
 
+	  // Determine if new max or min for each axis
+	  int16_t CODE_X = 0;
+	  if (mag_x > mag_x_minmax[1]) {
+	      mag_x_minmax[1] = mag_x; // update max
+	      CODE_X = 10;
+	  } else if (mag_x < mag_x_minmax[0]) {
+	      mag_x_minmax[0] = mag_x; // update min
+	      CODE_X = 1;
+	  } else {
+	      CODE_X = 0;
+	  }
+
+	  int16_t CODE_Y = 0;
+	  if (mag_y > mag_y_minmax[1]) {
+	      mag_y_minmax[1] = mag_y; // update max
+	      CODE_Y = 10;
+	  } else if (mag_y < mag_y_minmax[0]) {
+	      mag_y_minmax[0] = mag_y; // update min
+	      CODE_Y = 1;
+	  } else {
+	      CODE_Y = 0;
+	  }
+
+	  int16_t CODE_Z = 0;
+	  if (mag_z > mag_z_minmax[1]) {
+	      mag_z_minmax[1] = mag_z; // update max
+	      CODE_Z = 10;
+	  } else if (mag_z < mag_z_minmax[0]) {
+	      mag_z_minmax[0] = mag_z; // update min
+	      CODE_Z = 1;
+	  } else {
+	      CODE_Z = 0;
+	  }
+
+
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	  printf("%d,%d,%d,%d,%d,%d,%02d,%02d,%02d,\n\r", mag_x, mag_y, mag_z, acc_x, acc_y, acc_z, CODE_X, CODE_Y, CODE_Z);
+	  HAL_Delay(100);
+	  }
+	  HAL_Delay(10000);
+	  ///////////////////////////////////////////////////////////denne linje er til acc cali
 	  // GPS EXAMPLE CODE
 	  /*uint8_t rx_byte;
 	  while (1)
