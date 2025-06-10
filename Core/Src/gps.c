@@ -253,7 +253,7 @@ void getGPGGA(char sentence[LINEBUFFERSIZE], GPSRead_t *gps) {
 			}
 		}
 		else {
-			printf("Line skip, no %s: %s \r\n", filter, sentence);
+			//printf("Line skip, no %s \r\n", filter);
 		}
 	}
 }
