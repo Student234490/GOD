@@ -26,6 +26,7 @@ void RingBuffer_Write(RingBuffer *rb, uint8_t byte) {
 
 int32_t bredconv(char* string) {
 	/*
+	 * DEPRECATED FUNCTION
 	 * Input1: A string containing a latitude (breddegrad) format DDmm.mmmm
 	 * Output: 8.24 decimal degrees latitude
 	 */
@@ -45,7 +46,7 @@ int32_t bredconv(char* string) {
 	    k++;
 	}
 
-	int32_t minutes = FIX24_DIV(raw_minutes << 24, powten[6] << 24);
+	int32_t minutes = (raw_minutes << 24 / powten[6]);
 	return degrees + minutes;
 }
 
@@ -81,6 +82,34 @@ int32_t convert_DDmm_mmmm_to_fixed(char* str) {
     return fixed_degrees + scaled_fraction;
 }
 
+int string_to_int(const char *str) {
+    int result = 0;
+    while (*str) {
+        if (*str >= '0' && *str <= '9') {
+            result = result * 10 + (*str - '0');
+        }
+        str++;
+    }
+    return result;
+}
+
+int32_t DDmmmmmm(char *data) {
+    // Split
+    char DD_str[3] = {0};
+    char mm_str[8] = {0};
+
+    strncpy(DD_str, data, 2);
+    strcpy(mm_str, data + 2);
+
+    // Convert
+    int32_t DD = string_to_int(DD_str) << FIX16_SHIFT;
+    int64_t mm_int = string_to_int(mm_str);            //64 cuz no worki with 32
+    int32_t mm = ((mm_int << FIX16_SHIFT) / 600000);
+    int32_t cords = mm + DD + 1; // afrunding
+
+    return cords;
+}
+
 
 int RingBuffer_Read(RingBuffer *rb, uint8_t *byte) {
     if (rb->head == rb->tail) {
@@ -102,30 +131,29 @@ void getGPGGA(char sentence[LINEBUFFERSIZE], GPSRead_t *gps) {
 				while (tokPtr != NULL) {
 					switch (i) { // https://docs.novatel.com/OEM7/Content/Logs/GPGGA.htm
 						case 3: {  // latitude / breddegrad [DDmm.mmmm]
-							printf("%i Breddegrad: %s    ", i, tokPtr);
-							printFix(convert_DDmm_mmmm_to_fixed(tokPtr));
-							printf("\r\n");
+							gps->latitude = DDmmmmmm(tokPtr);
 							break;
 						}
 						case 4: {
 							if (!strcmp(tokPtr, "N")) {
-								//printf("%i Nord \r\n", i);
+								gps->latitude = abs(gps->latitude);
 							}
 							else {
-								//printf("%i Syd \r\n", i);
+								gps->latitude = -1 * abs(gps->latitude);
 							}
 							break;
 						}
 						case 5: {
-							//printf("%i Længdegrad: %s \r\n", i, tokPtr);
+							// to do
+							// gps->longitude = DDDmmmmmm(tokPtr);
 							break;
 						}
 						case 6: {
 							if (!strcmp(tokPtr, "E")) {
-								//printf("%i Øst \r\n", i);
+								gps->longitude = abs(gps->longitude);
 							}
 							else {
-								//printf("%i Vest \r\n", i);
+								gps->longitude = -1 * abs(gps->longitude);
 							}
 							break;
 						}
