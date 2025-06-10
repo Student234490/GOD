@@ -78,3 +78,12 @@ int32_t inconvert(int32_t i) {
 	 */
 	return((i + ((1 << (FIX16_SHIFT - 1)))) >> FIX16_SHIFT);
 }
+
+int32_t abs(int32_t i) {
+	if (i < 0) {
+		return -i;
+	}
+	else {
+		return i;
+	}
+}

@@ -36,5 +36,6 @@ int32_t squareroot(uint32_t x); // Returns the square root of a 16.16 fixed poin
 int32_t expand(int32_t i); // Converts an 18.14 fixed point number to 16.16
 int32_t convert(int32_t i); // converts a 32.0 fixed point number to 16.16
 int32_t inconvert(int32_t i); // converts a 16.16 fixed point number to 32.0
+int32_t abs(int32_t i); // absolute value
 
 #endif /* _FIXP_H_ */
