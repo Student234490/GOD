@@ -1,6 +1,7 @@
-// #include <stdint.h>
-// #include <math.h>
-#include <vector_and_matrix.h>
+#include <stdint.h>
+#include <math.h>
+#include <vector.h>
+#include <fixp.h>
 
 //////////////////Vector////////////////////////////////////////////
 
@@ -10,9 +11,9 @@ int32_t dot(Vector3D a, Vector3D b) {
 
 Vector3D cross(Vector3D a, Vector3D b){
 	Vector3D c;
-	c.x = a.y * b.z - a.z * b.y;
-	c.y = a.z * b.x - a.x * b.z;
-	c.z = a.x * b.y - a.y * b.z;
+	c.x = Mult(a.y,b.z) - Mult(a.z,b.y);
+	c.y = Mult(a.z,b.x) - Mult(a.x,b.z);
+	c.z = Mult(a.x,b.y) - Mult(a.y,b.z);
 	return c;
 }
 
@@ -24,12 +25,16 @@ Vector3D add_vector(Vector3D a, Vector3D b){
 	return vector;
 }
 
-Vector3D subtract_vector(Vector3D a, Vector3D b){
+Vector3D scale_vector(Vector3D a, int32_t k) {
 	Vector3D vector;
-	vector.x = a.x - b.x;
-	vector.y = a.y - b.y;
-	vector.z = a.z - b.z;
+	vector.x = Mult(a.x,k);
+	vector.y = Mult(a.y,k);
+	vector.z = Mult(a.y,k);
 	return vector;
+}
+
+Vector3D subtract_vector(Vector3D a, Vector3D b){
+	return add_vector(a, scale_vector(b, convert(-1)));
 }
 
 int32_t norm(Vector3D a){ //find norm
@@ -118,6 +123,33 @@ Matrix3x3 MMult(Matrix3x3 a, Matrix3x3 b){ //Matrix mult
 	svar.z.z = dot(a_vect3, b_vect3);
 
 	return svar;
+}
+
+void printFixMatrix(Matrix3x3 a) {
+	printf("\r\n[ ");
+	printFix(a.x.x);
+	printf(", ");
+	printFix(a.y.x);
+	printf(", ");
+	printFix(a.z.x);
+	printf(" ] \r\n");
+
+	printf("[ ");
+	printFix(a.x.y);
+	printf(", ");
+	printFix(a.y.y);
+	printf(", ");
+	printFix(a.z.y);
+	printf(" ] \r\n");
+
+	printf("[ ");
+	printFix(a.x.z);
+	printf(", ");
+	printFix(a.y.z);
+	printf(", ");
+	printFix(a.z.z);
+	printf(" ] \r\n");
+
 }
 
 void print_matrix(Matrix3x3 a) {

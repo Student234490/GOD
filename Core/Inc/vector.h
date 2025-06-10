@@ -1,12 +1,12 @@
 /*
- * vector_and_matrix.h
+ * vector.h
  *
  *  Created on: 9. jun. 2025
  *      Author: Rasmus
  */
 
-#ifndef INC_VECTOR_AND_MATRIX_H_
-#define INC_VECTOR_AND_MATRIX_H_
+#ifndef INC_VECTOR_H_
+#define INC_VECTOR_H_
 
 #include <fixp.h>
 #include <stdint.h>
@@ -54,4 +54,4 @@ void print_matrix(Matrix3x3 a);
 
 
 
-#endif /* INC_VECTOR_AND_MATRIX_H_ */
+#endif /* INC_VECTOR_H_ */
