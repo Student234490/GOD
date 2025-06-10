@@ -37,7 +37,6 @@ int32_t squareroot(uint32_t x) {
     return (uint32_t)(approx);
 }
 
-
 int32_t Rational(int a, int b) {
 	return(FIX16_DIV(convert(a), convert(b)));
 }
