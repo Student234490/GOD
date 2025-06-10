@@ -10,7 +10,6 @@
 #include <stdio.h> // used for printing
 #include <string.h>
 #include <fixp.h>
-#define LINEBUFFERSIZE 100
 #define DELIM ","
 #define ASCII0 48
 
@@ -93,6 +92,37 @@ int string_to_int(const char *str) {
     return result;
 }
 
+int powten(int x) {
+	int i = 1;
+	if (x > 0) {
+		for (int j = 0; j < x; j++) {
+			i *= 10;
+		}
+	}
+	return i;
+}
+
+int32_t Altxx(char *data) {
+	// format: x<integer>x.x<integer>x, where there can be any amount of integers and decimals (meters)
+	char* tokptr = strtok(data, ".");
+	int ints[2] = {0,0};
+	int len2 = 0;
+	int j = 0;
+	while (tokptr != NULL) {
+        ints[j] = string_to_int(tokptr);
+        if (j == 1) {len2 = strlen(tokptr);}
+        // next iteration
+        j++;
+        tokptr = strtok(NULL, ".");
+	}
+    // Convert to fixed-point representation
+    //printf("%i", ints[1]);
+	int32_t result = convert(ints[0]);
+	result += Rational(ints[1], powten(len2));
+    //printFix(result);
+    return result;
+}
+
 int32_t DDmmmmmm(char *data) {
     // Split
     char DD_str[3] = {0};
@@ -105,11 +135,26 @@ int32_t DDmmmmmm(char *data) {
     int32_t DD = string_to_int(DD_str) << FIX16_SHIFT;
     int64_t mm_int = string_to_int(mm_str);            //64 cuz no worki with 32
     int32_t mm = ((mm_int << FIX16_SHIFT) / 600000);
-    int32_t cords = mm + DD + 1; // afrunding
+    int32_t cords = mm + DD;
 
     return cords;
 }
 
+int32_t DDDmmmmmm(char *data) {
+	char DD_str[4] = {0};
+	char mm_str[10] = {0};
+
+	strncpy(DD_str, data, 3);
+	strcpy(mm_str, data + 3);
+
+	// Convert
+	int32_t DD = string_to_int(DD_str) << FIX16_SHIFT;
+	int64_t mm_int = string_to_int(mm_str);
+	int32_t mm = ((mm_int << FIX16_SHIFT) / 600000);
+
+	int32_t cords = mm + DD;
+	return cords;
+}
 
 int RingBuffer_Read(RingBuffer *rb, uint8_t *byte) {
     if (rb->head == rb->tail) {
@@ -129,6 +174,7 @@ void getGPGGA(char sentence[LINEBUFFERSIZE], GPSRead_t *gps) {
 				char *tokPtr = strtok(senPtr, DELIM);
 				int i = 1; // index for going through GPGGA values
 				while (tokPtr != NULL) {
+					//printf("%i %s \r\n", i, tokPtr);
 					switch (i) { // https://docs.novatel.com/OEM7/Content/Logs/GPGGA.htm
 						case 3: {  // latitude / breddegrad [DDmm.mmmm]
 							gps->latitude = DDmmmmmm(tokPtr);
@@ -136,29 +182,36 @@ void getGPGGA(char sentence[LINEBUFFERSIZE], GPSRead_t *gps) {
 						}
 						case 4: {
 							if (!strcmp(tokPtr, "N")) {
+								// north direction
 								gps->latitude = abs(gps->latitude);
 							}
 							else {
+								// south direction
 								gps->latitude = -1 * abs(gps->latitude);
 							}
 							break;
 						}
 						case 5: {
-							// to do
-							// gps->longitude = DDDmmmmmm(tokPtr);
+							gps->longitude = DDDmmmmmm(tokPtr);
 							break;
 						}
 						case 6: {
 							if (!strcmp(tokPtr, "E")) {
+								// east direction
 								gps->longitude = abs(gps->longitude);
 							}
 							else {
+								// west direction
 								gps->longitude = -1 * abs(gps->longitude);
 							}
 							break;
 						}
+						case 10: { // altitude
+							gps->altitude = Altxx(tokPtr);
+							break;
+						}
 						default: {
-							//printf("%i %s \r\n", i, tokPtr);
+							break;
 						}
 					}
 					i++;
@@ -222,4 +275,14 @@ void process_uart_data(RingBuffer *rb, GPSRead_t *gps) {
             indx = 0;  // Reset for next line
         }
     }
+}
+
+void printGPS(GPSRead_t GPS) {
+	printf("Active: %i ~ Latitude: ", GPS.active);
+	printFix(GPS.latitude);
+	printf("deg ~ Longitude: ");
+	printFix(GPS.longitude);
+	printf("deg ~ Altitude: ");
+	printFix(GPS.altitude);
+	printf("m. \r\n");
 }

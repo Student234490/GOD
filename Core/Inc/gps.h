@@ -9,6 +9,7 @@
 #ifndef INC_GPS_H_
 #define INC_GPS_H_
 #define RING_BUF_SIZE 512
+#define LINEBUFFERSIZE 100
 
 typedef struct {
     uint8_t buffer[RING_BUF_SIZE];
@@ -26,6 +27,7 @@ typedef struct {
 void RingBuffer_Write(RingBuffer *rb, uint8_t byte); // runs in the interrupt
 int RingBuffer_Read(RingBuffer *rb, uint8_t *byte); // runs in process_uart_data
 void process_uart_data(RingBuffer *rb, GPSRead_t *gps); // runs in main script
-void getGPGGA(char sentence[100], GPSRead_t *gps);
+void getGPGGA(char sentence[LINEBUFFERSIZE], GPSRead_t *gps);
+void printGPS(GPSRead_t GPS);
 
 #endif /* INC_GPS_H_ */
