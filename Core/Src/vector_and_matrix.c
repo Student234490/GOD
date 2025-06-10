@@ -33,7 +33,7 @@ Vector3D subtract_vector(Vector3D a, Vector3D b){
 }
 
 int32_t norm(Vector3D a){ //find norm
-	sqrt(Mult(a.x, a.x) + Mult(a.y, a.y) + Mult(a.z, a.z));
+	return sqrt(Mult(a.x, a.x) + Mult(a.y, a.y) + Mult(a.z, a.z));
 }
 
 int32_t cos_theta(Vector3D a, Vector3D b){ //cos_theta (later use??)
@@ -121,7 +121,7 @@ Matrix3x3 MMult(Matrix3x3 a, Matrix3x3 b){ //Matrix mult
 }
 
 void print_matrix(Matrix3x3 a) {
-    printf("(%d, %d, %d)\n", a.x.x, a.y.x, a.z.x);
-    printf("(%d, %d, %d)\n", a.x.y, a.y.y, a.y.z);
-    printf("(%d, %d, %d)\n", a.x.z, a.y.z, a.z.z);
+    printf("(%ld, %ld, %ld)\n", a.x.x, a.y.x, a.z.x);
+    printf("(%ld, %ld, %ld)\n", a.x.y, a.y.y, a.y.z);
+    printf("(%ld, %ld, %ld)\n", a.x.z, a.y.z, a.z.z);
 }

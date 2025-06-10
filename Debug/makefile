@@ -60,8 +60,8 @@ all: main-build
 main-build: GOD.elf secondary-outputs
 
 # Tool invocations
-GOD.elf: $(OBJS) $(USER_OBJS) C:\Users\Rasmus\OneDrive\ -\ Danmarks\ Tekniske\ Universitet\Skrivebord\S234496\Fagproj\G.O.D\ -\ Kode\GOD\STM32G431KBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "GOD.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\Rasmus\OneDrive - Danmarks Tekniske Universitet\Skrivebord\S234496\Fagproj\G.O.D - Kode\GOD\STM32G431KBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="GOD.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+GOD.elf: $(OBJS) $(USER_OBJS) C:\Users\theis\OneDrive\ -\ Danmarks\ Tekniske\ Universitet\Kurser\30110\ Fagprojekt,\ Geomagnetic\ Orientation\ Device\GOD\STM32G431KBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "GOD.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\theis\OneDrive - Danmarks Tekniske Universitet\Kurser\30110 Fagprojekt, Geomagnetic Orientation Device\GOD\STM32G431KBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="GOD.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
