@@ -45,6 +45,19 @@ int32_t cos_theta(Vector3D a, Vector3D b){ //cos_theta (later use??)
 	return Div(dot(a,b), Mult(norm(a),norm(b)));
 }
 
+void printFixVector(Vector3D a) {
+	printf("[ ");
+	printFix(a.x);
+	printf(", ");
+	printFix(a.y);
+	printf(", ");
+	printFix(a.z);
+	printf(" ]");
+}
+
+void printVector(Vector3D a) {
+	printf("[ %i, %i, %i ]", (int)a.x, (int)a.y, (int)a.z);
+}
 
 //////////////////Matrix////////////////////////////////////////////
 
