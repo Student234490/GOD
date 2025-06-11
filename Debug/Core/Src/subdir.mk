@@ -5,40 +5,40 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Core/Src/3D_vect.c \
 ../Core/Src/fixp.c \
 ../Core/Src/i2c.c \
+../Core/Src/lsm9ds1.c \
 ../Core/Src/main.c \
 ../Core/Src/stm32g4xx_hal_msp.c \
 ../Core/Src/stm32g4xx_it.c \
 ../Core/Src/syscalls.c \
 ../Core/Src/sysmem.c \
 ../Core/Src/system_stm32g4xx.c \
-../Core/Src/vector_and_matrix.c 
+../Core/Src/vector.c 
 
 OBJS += \
-./Core/Src/3D_vect.o \
 ./Core/Src/fixp.o \
 ./Core/Src/i2c.o \
+./Core/Src/lsm9ds1.o \
 ./Core/Src/main.o \
 ./Core/Src/stm32g4xx_hal_msp.o \
 ./Core/Src/stm32g4xx_it.o \
 ./Core/Src/syscalls.o \
 ./Core/Src/sysmem.o \
 ./Core/Src/system_stm32g4xx.o \
-./Core/Src/vector_and_matrix.o 
+./Core/Src/vector.o 
 
 C_DEPS += \
-./Core/Src/3D_vect.d \
 ./Core/Src/fixp.d \
 ./Core/Src/i2c.d \
+./Core/Src/lsm9ds1.d \
 ./Core/Src/main.d \
 ./Core/Src/stm32g4xx_hal_msp.d \
 ./Core/Src/stm32g4xx_it.d \
 ./Core/Src/syscalls.d \
 ./Core/Src/sysmem.d \
 ./Core/Src/system_stm32g4xx.d \
-./Core/Src/vector_and_matrix.d 
+./Core/Src/vector.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -48,7 +48,7 @@ Core/Src/%.o: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/3D_vect.d ./Core/Src/3D_vect.o ./Core/Src/fixp.d ./Core/Src/fixp.o ./Core/Src/i2c.d ./Core/Src/i2c.o ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/stm32g4xx_hal_msp.d ./Core/Src/stm32g4xx_hal_msp.o ./Core/Src/stm32g4xx_it.d ./Core/Src/stm32g4xx_it.o ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/system_stm32g4xx.d ./Core/Src/system_stm32g4xx.o ./Core/Src/vector_and_matrix.d ./Core/Src/vector_and_matrix.o
+	-$(RM) ./Core/Src/fixp.d ./Core/Src/fixp.o ./Core/Src/i2c.d ./Core/Src/i2c.o ./Core/Src/lsm9ds1.d ./Core/Src/lsm9ds1.o ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/stm32g4xx_hal_msp.d ./Core/Src/stm32g4xx_hal_msp.o ./Core/Src/stm32g4xx_it.d ./Core/Src/stm32g4xx_it.o ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/system_stm32g4xx.d ./Core/Src/system_stm32g4xx.o ./Core/Src/vector.d ./Core/Src/vector.o
 
 .PHONY: clean-Core-2f-Src
 

@@ -22,9 +22,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include "stm32g4xx_hal.h"
 #include "i2c.h"
+#include "lsm9ds1.h"
+#include "vector.h"
 
 /* USER CODE END Includes */
 
@@ -35,16 +38,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LSM9DS1_MAG_ADDRESS   0x1E // Would be 0x1C if SDO_M is LOW
-#define LSM9DS1_ACC_ADDRESS   0x6B
-
-#define OUT_X_L_M   0x28 //
-#define OUT_Y_L_M   0x2A //
-#define OUT_Z_L_M   0x2C //
-
-#define OUT_X_XL   0x28 //
-#define OUT_Y_XL   0x2A //
-#define OUT_Z_XL   0x2C //
 
 
 /* USER CODE END PD */
@@ -56,7 +49,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c3;
-
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
@@ -110,28 +102,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
-  // Enable accelerometer: ODR = 119 Hz, ±2g, BW = 50 Hz
-
-  uint8_t acc_ctrl_reg8[2] = {0x22, 0x05}; // reboot + soft reset
-  HAL_I2C_Master_Transmit(&hi2c3, LSM9DS1_ACC_ADDRESS << 1, acc_ctrl_reg8, 2, HAL_MAX_DELAY);
-  HAL_Delay(100);
-
-  uint8_t acc_ctrl_reg6[2] = {0x20, 0x60}; // 0x60 = 0b01100000 → ODR = 119Hz, ±2g
-  HAL_I2C_Master_Transmit(&hi2c3, LSM9DS1_ACC_ADDRESS << 1, acc_ctrl_reg6, 2, HAL_MAX_DELAY);
-  HAL_Delay(10);
-
-  uint8_t mag_ctrl_reg1[2] = {0x20, 0b01110000}; //
-  HAL_I2C_Master_Transmit(&hi2c3, LSM9DS1_MAG_ADDRESS << 1, mag_ctrl_reg1, 2, HAL_MAX_DELAY);
-  HAL_Delay(10);
-
-  uint8_t mag_ctrl_reg3[2] = {0x22, 0b00000000}; //
-  HAL_I2C_Master_Transmit(&hi2c3, LSM9DS1_MAG_ADDRESS << 1, mag_ctrl_reg3, 2, HAL_MAX_DELAY);
-  HAL_Delay(10);
-
-  uint8_t mag_ctrl_reg4[2] = {0x23, 0b00001100}; //
-  HAL_I2C_Master_Transmit(&hi2c3, LSM9DS1_MAG_ADDRESS << 1, mag_ctrl_reg4, 2, HAL_MAX_DELAY);
-  HAL_Delay(10);
-
+  lsmCtrlReg(&hi2c3);
 
   /* USER CODE END 2 */
 
@@ -140,101 +111,10 @@ int main(void)
   I2C_Scan(&hi2c3);
   while (1)
   {
-	  for (int i = 0; i < 10; i++) { //////////////////////////////acc cali
-	  //printf("Loop begun");
-
-
-	  // Magnetometer example code
-	  /*uint16_t buffer;
-	  HAL_I2C_Master_Transmit(&hi2c3, LSM9DS1_MAG_ADDRESS << 1, OUT_X_L_M, 1, HAL_MAX_DELAY);
-	  HAL_I2C_Master_Receive(&hi2c3, LSM9DS1_MAG_ADDRESS << 1 | 0x01, buffer, sizeof(buffer), HAL_MAX_DELAY);
-	  printf("%d\n", buffer);
-	  */
-	  uint8_t reg1 = OUT_X_XL | 0x80; // Enable auto-increment
-	  uint8_t data1[6];
-
-	  // Request starting from OUT_X_XL with auto-increment
-	  HAL_I2C_Master_Transmit(&hi2c3, LSM9DS1_ACC_ADDRESS << 1, &reg1, 1, HAL_MAX_DELAY);
-	  HAL_I2C_Master_Receive(&hi2c3, (LSM9DS1_ACC_ADDRESS << 1) | 0x01, data1, 6, HAL_MAX_DELAY);
-
-	  // Combine bytes into signed 16-bit integers
-	  int16_t acc_x = (int16_t)(data1[1] << 8 | data1[0]);
-	  int16_t acc_y = (int16_t)(data1[3] << 8 | data1[2]);
-	  int16_t acc_z = (int16_t)(data1[5] << 8 | data1[4]);
-
-	  uint8_t reg2 = OUT_X_L_M | 0x80; // Enable auto-increment
-	  uint8_t data2[6];
-
-	  // Request starting from OUT_X_XL with auto-increment
-	  HAL_I2C_Master_Transmit(&hi2c3, LSM9DS1_MAG_ADDRESS << 1, &reg2, 1, HAL_MAX_DELAY);
-	  HAL_I2C_Master_Receive(&hi2c3, (LSM9DS1_MAG_ADDRESS << 1) | 0x01, data2, 6, HAL_MAX_DELAY);
-
-	  // Combine bytes into signed 16-bit integers
-	  int16_t mag_x = (int16_t)(data2[1] << 8 | data2[0]);
-	  int16_t mag_y = (int16_t)(data2[3] << 8 | data2[2]);
-	  int16_t mag_z = (int16_t)(data2[5] << 8 | data2[4]);
-
-	  /////////////////////////////////////////////////////// HER LAVER RASMUS KÆMPE YUM YUM //////////////////////////////////////////////////////////////////////////////////
-	  // Static arrays to store [min, max] for each axis
-	  static int16_t mag_x_minmax[2] = {INT16_MAX, INT16_MIN};
-	  static int16_t mag_y_minmax[2] = {INT16_MAX, INT16_MIN};
-	  static int16_t mag_z_minmax[2] = {INT16_MAX, INT16_MIN};
-
-	  // Determine if new max or min for each axis
-	  int16_t CODE_X = 0;
-	  if (mag_x > mag_x_minmax[1]) {
-	      mag_x_minmax[1] = mag_x; // update max
-	      CODE_X = 10;
-	  } else if (mag_x < mag_x_minmax[0]) {
-	      mag_x_minmax[0] = mag_x; // update min
-	      CODE_X = 1;
-	  } else {
-	      CODE_X = 0;
-	  }
-
-	  int16_t CODE_Y = 0;
-	  if (mag_y > mag_y_minmax[1]) {
-	      mag_y_minmax[1] = mag_y; // update max
-	      CODE_Y = 10;
-	  } else if (mag_y < mag_y_minmax[0]) {
-	      mag_y_minmax[0] = mag_y; // update min
-	      CODE_Y = 1;
-	  } else {
-	      CODE_Y = 0;
-	  }
-
-	  int16_t CODE_Z = 0;
-	  if (mag_z > mag_z_minmax[1]) {
-	      mag_z_minmax[1] = mag_z; // update max
-	      CODE_Z = 10;
-	  } else if (mag_z < mag_z_minmax[0]) {
-	      mag_z_minmax[0] = mag_z; // update min
-	      CODE_Z = 1;
-	  } else {
-	      CODE_Z = 0;
-	  }
-
-
-      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	  printf("%d,%d,%d,%d,%d,%d,%02d,%02d,%02d,\n\r", mag_x, mag_y, mag_z, acc_x, acc_y, acc_z, CODE_X, CODE_Y, CODE_Z);
-	  HAL_Delay(100);
-	  }
-	  HAL_Delay(10000);
-	  ///////////////////////////////////////////////////////////denne linje er til acc cali
-	  // GPS EXAMPLE CODE
-	  /*uint8_t rx_byte;
-	  while (1)
-	  {
-	      if (HAL_UART_Receive(&huart1, &rx_byte, 1, 100) == HAL_OK)
-	      {
-	          // Echo byte to USART2 for debugging
-	    	  HAL_UART_Transmit(&huart2, &rx_byte, 1, HAL_MAX_DELAY);
-	      }
-	  }*/
-
-	  //printf("Hello from STM32!\r\n");
-
+	  printFixVector(lsmMagOut(&hi2c3));
+	  printf("\r\n");
+	  printVector(lsmMagRead(&hi2c3));
+	  printf("\r\n");
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

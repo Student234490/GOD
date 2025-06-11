@@ -1,12 +1,12 @@
 /*
- * vector_and_matrix.h
+ * vector.h
  *
  *  Created on: 9. jun. 2025
  *      Author: Rasmus
  */
 
-#ifndef INC_VECTOR_AND_MATRIX_H_
-#define INC_VECTOR_AND_MATRIX_H_
+#ifndef INC_VECTOR_H_
+#define INC_VECTOR_H_
 
 #include <fixp.h>
 #include <stdint.h>
@@ -32,6 +32,8 @@ Vector3D subtract_vector(Vector3D a, Vector3D b);
 int32_t norm(Vector3D a);
 int32_t cos_theta(Vector3D a, Vector3D b);
 Vector3D VMult(Vector3D a, int32_t b);
+void printVector(Vector3D a);
+void printFixVector(Vector3D a);
 
 ////////////////// Matrix //////////////////
 typedef struct {
@@ -56,4 +58,4 @@ void print_matrix(Matrix3x3 a);
 
 
 
-#endif /* INC_VECTOR_AND_MATRIX_H_ */
+#endif /* INC_VECTOR_H_ */
