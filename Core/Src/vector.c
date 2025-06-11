@@ -162,12 +162,6 @@ Vector3D MVMult(Matrix3x3 a, Vector3D b){
 	return c;
 }
 
-void print_matrix(Matrix3x3 a) {
-    printf("(%d, %d, %d)\n", a.x.x, a.y.x, a.z.x);
-    printf("(%d, %d, %d)\n", a.x.y, a.y.y, a.y.z);
-    printf("(%d, %d, %d)\n", a.x.z, a.y.z, a.z.z);
-}
-
 void printFixMatrix(Matrix3x3 a) {
 	printf("\r\n[ ");
 	printFix(a.x.x);
