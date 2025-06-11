@@ -16,7 +16,9 @@
 #include "luts.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <fixp.h>
 #define LUTCOUNT 512
+#define PI16 205887
 
 // constants
 

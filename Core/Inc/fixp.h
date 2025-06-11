@@ -17,6 +17,7 @@
 
 #define FIX16_SHIFT 16
 #define FIX16_MULT(a, b) ((int32_t)(((int64_t)(a) * (int64_t)(b)) >> FIX16_SHIFT))
+#define FIX16_DIV(a, b)  ( ((a) << FIX16_SHIFT) / b )
 #define FIX16_POW(a, exp_int) ({ \
     int32_t _base = (a); \
     int32_t _result = 1 << FIX16_SHIFT; \
