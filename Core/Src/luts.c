@@ -109,20 +109,21 @@ int32_t sinus(int t) { // takes 32.0 integer representing a 512th degree
 	return(expand(returnval)); // returns 16.16 decimal
 }
 
-int32_t cosinus(int t) { // takes integer representing a 512th degree
-	return(sinus(LUTCOUNT+128)); // returns 16.16 decimal
+int32_t cosinus(int t) {          // correct quarter–cycle phase-shift
+    return sinus((t + LUTCOUNT/4) % LUTCOUNT);
 }
+                       // :contentReference[oaicite:0]{index=0}
 
 int32_t sinrad(int32_t t) { // takes int32 16.16 corresponding to radians
 	int32_t factor = FIX16_DIV(convert(LUTCOUNT),FIX16_MULT(convert(2),PI16)); // N/2pi
 	int integer = (int)(inconvert((FIX16_MULT(t, factor)))); // 32.0 degree
-	printf("%i,", integer);
+	//printf("%i,", integer);
 	return sinus(integer); // returns 16.16 decimal
 }
 
 int32_t cosrad(int32_t t) { // takes int32 16.16 corresponding to radians
 	int32_t factor = FIX16_DIV(convert(LUTCOUNT),FIX16_MULT(convert(2),PI16)); // N/2pi
 	int integer = (int)(inconvert((FIX16_MULT(t, factor)))); // 32.0 degree
-	printf("%i,", integer);
+	//printf("%i,", integer);
 	return cosinus(integer); // returns 16.16 decimal
 }
