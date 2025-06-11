@@ -33,6 +33,14 @@ Vector3D scale_vector(Vector3D a, int32_t k) {
 	return vector;
 }
 
+Vector3D VMult(Vector3D a, int32_t b){
+	Vector3D c;
+	c.x = Mult(a.x, b);
+	c.y = Mult(a.y, b);
+	c.z = Mult(a.z, b);
+	return c;
+}
+
 Vector3D subtract_vector(Vector3D a, Vector3D b){
 	return add_vector(a, scale_vector(b, convert(-1)));
 }
@@ -136,6 +144,28 @@ Matrix3x3 MMult(Matrix3x3 a, Matrix3x3 b){ //Matrix mult
 	svar.z.z = dot(a_vect3, b_vect3);
 
 	return svar;
+}
+
+Vector3D MVMult(Matrix3x3 a, Vector3D b){
+	a = transpose(a);
+	Vector3D a_vect1;
+	Vector3D a_vect2;
+	Vector3D a_vect3;
+	a_vect1 = a.x;
+	a_vect2 = a.y;
+	a_vect3 = a.z;
+
+	Vector3D c;
+	c.x = dot(a_vect1, b);
+	c.y = dot(a_vect2, b);
+	c.z = dot(a_vect3, b);
+	return c;
+}
+
+void print_matrix(Matrix3x3 a) {
+    printf("(%d, %d, %d)\n", a.x.x, a.y.x, a.z.x);
+    printf("(%d, %d, %d)\n", a.x.y, a.y.y, a.y.z);
+    printf("(%d, %d, %d)\n", a.x.z, a.y.z, a.z.z);
 }
 
 void printFixMatrix(Matrix3x3 a) {

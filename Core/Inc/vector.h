@@ -31,6 +31,7 @@ Vector3D add_vector(Vector3D a, Vector3D b);
 Vector3D subtract_vector(Vector3D a, Vector3D b);
 int32_t norm(Vector3D a);
 int32_t cos_theta(Vector3D a, Vector3D b);
+Vector3D VMult(Vector3D a, int32_t b);
 void printVector(Vector3D a);
 void printFixVector(Vector3D a);
 
@@ -50,6 +51,7 @@ Matrix3x3 create_matrix_from_vectors(Vector3D a, Vector3D b, Vector3D c);
 // Matrix operations
 Matrix3x3 transpose(Matrix3x3 a);
 Matrix3x3 MMult(Matrix3x3 a, Matrix3x3 b);
+Vector3D MVMult(Matrix3x3 a, Vector3D b);
 
 // Utility
 void print_matrix(Matrix3x3 a);
