@@ -14,14 +14,8 @@
 #define N_ITERS 100000 // benchmarking repetitions
 
 // hard code constants
-int Nmax = 104;
-int32_t Ns[104] = {
-0x00010000, 0x00010000, 0x00020000, 0x00020000, 0x00020000, 0x00030000, 0x00030000, 0x00030000, 0x00030000, 0x00040000, 0x00040000, 0x00040000, 0x00040000, 0x00040000, 0x00050000, 0x00050000, 0x00050000, 0x00050000, 0x00050000, 0x00050000, 0x00060000, 0x00060000, 0x00060000, 0x00060000, 0x00060000, 0x00060000, 0x00060000, 0x00070000, 0x00070000, 0x00070000, 0x00070000, 0x00070000, 0x00070000, 0x00070000, 0x00070000, 0x00080000, 0x00080000, 0x00080000, 0x00080000, 0x00080000, 0x00080000, 0x00080000, 0x00080000, 0x00080000, 0x00090000, 0x00090000, 0x00090000, 0x00090000, 0x00090000, 0x00090000, 0x00090000, 0x00090000, 0x00090000, 0x00090000, 0x000A0000, 0x000A0000, 0x000A0000, 0x000A0000, 0x000A0000, 0x000A0000, 0x000A0000, 0x000A0000, 0x000A0000, 0x000A0000, 0x000A0000, 0x000B0000, 0x000B0000, 0x000B0000, 0x000B0000, 0x000B0000, 0x000B0000, 0x000B0000, 0x000B0000, 0x000B0000, 0x000B0000, 0x000B0000, 0x000B0000, 0x000C0000, 0x000C0000, 0x000C0000, 0x000C0000, 0x000C0000, 0x000C0000, 0x000C0000, 0x000C0000, 0x000C0000, 0x000C0000, 0x000C0000, 0x000C0000, 0x000C0000, 0x000D0000, 0x000D0000, 0x000D0000, 0x000D0000, 0x000D0000, 0x000D0000, 0x000D0000, 0x000D0000, 0x000D0000, 0x000D0000, 0x000D0000, 0x000D0000, 0x000D0000, 0x000D0000
-};
-
-int32_t Ms[104] = {
-0x00000000, 0x00010000, 0x00000000, 0x00010000, 0x00020000, 0x00000000, 0x00010000, 0x00020000, 0x00030000, 0x00000000, 0x00010000, 0x00020000, 0x00030000, 0x00040000, 0x00000000, 0x00010000, 0x00020000, 0x00030000, 0x00040000, 0x00050000, 0x00000000, 0x00010000, 0x00020000, 0x00030000, 0x00040000, 0x00050000, 0x00060000, 0x00000000, 0x00010000, 0x00020000, 0x00030000, 0x00040000, 0x00050000, 0x00060000, 0x00070000, 0x00000000, 0x00010000, 0x00020000, 0x00030000, 0x00040000, 0x00050000, 0x00060000, 0x00070000, 0x00080000, 0x00000000, 0x00010000, 0x00020000, 0x00030000, 0x00040000, 0x00050000, 0x00060000, 0x00070000, 0x00080000, 0x00090000, 0x00000000, 0x00010000, 0x00020000, 0x00030000, 0x00040000, 0x00050000, 0x00060000, 0x00070000, 0x00080000, 0x00090000, 0x000A0000, 0x00000000, 0x00010000, 0x00020000, 0x00030000, 0x00040000, 0x00050000, 0x00060000, 0x00070000, 0x00080000, 0x00090000, 0x000A0000, 0x000B0000, 0x00000000, 0x00010000, 0x00020000, 0x00030000, 0x00040000, 0x00050000, 0x00060000, 0x00070000, 0x00080000, 0x00090000, 0x000A0000, 0x000B0000, 0x000C0000, 0x00000000, 0x00010000, 0x00020000, 0x00030000, 0x00040000, 0x00050000, 0x00060000, 0x00070000, 0x00080000, 0x00090000, 0x000A0000, 0x000B0000, 0x000C0000, 0x000D0000
-};
+int Ns[104] = {1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13,};
+int Ms[104] = {0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
 
 int32_t Gs[104] = {
 0x8C4C999A, 0xF93FCCCD, 0xF2B67333, 0x14C29EB8, 0x05A70A3D, 0x0D150000, 0xE4A275C3, 0x0978AE14, 0x0234DC29, 0x0FEECF5C, 0x110223D7, 0x03D247AE, 0xFCB50F5C, 0x00524F5C, 0xF944F333, 0x0DF48A3D, 0x06AC6B85, 0xFD9A4F5C, 0xFE89F5C3, 0xFFF6F333, 0x0413D47B, 0x050930A4, 0x0454DC29, 0xF9BCFAE1, 0xFFDFCCCD, 0x002751EC, 0xFFC347AE, 0x084630A4, 0xF5BF4000, 0x00000000, 0x02A9EE14, 0x00706148, 0x002A999A, 0x0011AE14, 0xFFFF3852, 0x04CAAB85, 0x01BA68F6, 0xFDFC0A3D, 0xFEB8CA3D, 0xFE442E14, 0x0086F5C3, 0x00300F5C, 0xFFEC3333, 0xFFFB9C29, 0x01DACCCD, 0x04AD970A, 0x0145F333, 0xFD46F0A4, 0x01632B85, 0xFED42666, 0xFFE5E666, 0x00460F5C, 0xFFF4E3D7, 0xFFFB028F, 0xFE2AE3D7, 0xFA4C47AE, 0x01662E14, 0xFDFFA148, 0xFFC58F5C, 0x01117D71, 0x002951EC, 0x0028170A, 0x00225EB8, 0x0000CCCD, 0xFFFF599A, 0x03A2028F, 0xFCE723D7, 0xFCF6CF5C, 0x01EBF333, 0xFFE80CCD, 0x000FD70A, 0xFFBE1EB8, 0x0022B852, 0x0026B0A4, 0x0000E148, 0x0003428F, 0x000251EC, 0xFA5391EC, 0xFEF2E3D7, 0x009F07AE, 0x02484CCD, 0xFF9E9EB8, 0x012C9EB8, 0xFF97D99A, 0x00231EB8, 0xFFEE70A4, 0xFFF5C7AE, 0xFFFF0F5C, 0xFFFF70A4, 0xFFFFC51F, 0xFF02147B, 0xF9EAD70A, 0x01D0428F, 0x00804F5C, 0xFE76599A, 0x0388A3D7, 0xFF4B6148, 0x00BB0000, 0xFFC6E148, 0x00146B85, 0xFFFD28F6, 0x0004028F, 0x00000000, 0x00000F5C
@@ -60,12 +54,32 @@ int32_t toRad(int32_t angledeg) {
 }
 
 void magnet(int32_t r, int32_t theta, int32_t phi, int32_t days, int32_t buffer[3]) {
+	printf("Theta input: ");
+	printFix(theta);
+	printf("\r\n");
+
+	printf("Phi input: ");
+	printFix(phi);
+	printf("\r\n");
+
+	printf("Normalized theta: ");
     theta = normalizeTheta(theta);
+    printFix(theta);
+    printf("\r\n");
+
+    printf("Theta radians: ");
     theta = toRad(5898240-theta);
+    printFix(theta);
+    printf("\r\n");
+
+    printf("Phi radians: ");
     phi = toRad(phi);
+    printFix(phi);
+    printf("\r\n");
     int32_t a = 417542963;
 
-    int8_t Nmodel = 13; // hard code
+    int Nmodel = 2; // hard code
+    int Nmax = Nmodel * (Nmodel + 3 ) / 2;
 
     int32_t g[Nmodel][Nmodel+1];
     int32_t h[Nmodel][Nmodel+1];
@@ -117,8 +131,13 @@ void magnet(int32_t r, int32_t theta, int32_t phi, int32_t days, int32_t buffer[
                         dP20 = dP10;
                         dP10 = dP2;
                     } else {
-                        K = DIV(POW((n-1), 2<<16) - POW(m, 2<<16), MULT(MULT(2<<16, n) - (1<<16), MULT(2<<16, n) - (3<<16)));
-                        P2 = MULT(cosrad(theta), P10) - MULT(K, P20);
+                    	int32_t nm1 = convert(n-1);           // 16.16
+                    	int32_t mfix = convert(m);
+                    	int32_t num  = FIX16_MULT(nm1,nm1) - FIX16_MULT(mfix,mfix);
+                    	int32_t den  = FIX16_MULT(convert(2*n)-convert(1),
+                    	                          convert(2*n)-convert(3));
+                    	K = FIX16_DIV(num, den);
+                    	P2 = MULT(cosrad(theta), P10) - MULT(K, P20);
                         dP2 = MULT(cosrad(theta), dP10) - MULT(sinrad(theta), P10) - MULT(K, dP20);
                         P20 = P10;
                         P10 = P2;
@@ -141,9 +160,9 @@ void magnet(int32_t r, int32_t theta, int32_t phi, int32_t days, int32_t buffer[
                 int32_t hcos = MULT(hnm, cos_mphi);
 
                 // Magnetic field component updates
-                Br = Br + MULT(ar_pow, (n + 1)<<16) * MULT((gcos + hsin), P2);
-                Bt = Bt + MULT(ar_pow, 1<<16) * MULT((gcos + hsin), dP2);
-                Bp = Bp + MULT(ar_pow, 1<<16) * MULT(MULT(m, (-gsin + hcos)), P2);
+                Br = Br + MULT(MULT(ar_pow, (n + 1)<<16), MULT((gcos + hsin), P2));
+                Bt = Bt + MULT(MULT(ar_pow, 1<<16), MULT((gcos + hsin), dP2));
+                Bp = Bp + MULT(MULT(ar_pow, 1<<16), MULT(MULT(convert(m), (-gsin + hcos)), P2));
             }
         }
     }
