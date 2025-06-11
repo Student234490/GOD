@@ -10,9 +10,9 @@ int32_t dot(Vector3D a, Vector3D b) {
 
 Vector3D cross(Vector3D a, Vector3D b){
 	Vector3D c;
-	c.x = a.y * b.z - a.z * b.y;
-	c.y = a.z * b.x - a.x * b.z;
-	c.z = a.x * b.y - a.y * b.z;
+	c.x = Mult(a.y, b.z) - Mult(a.z, b.y);
+	c.y = Mult(a.z, b.x) - Mult(a.x, b.z);
+	c.z = Mult(a.x, b.y) - Mult(a.y, b.z);
 	return c;
 }
 
@@ -30,6 +30,14 @@ Vector3D subtract_vector(Vector3D a, Vector3D b){
 	vector.y = a.y - b.y;
 	vector.z = a.z - b.z;
 	return vector;
+}
+
+Vector3D VMult(Vector3D a, int32_t b){
+	Vector3D c;
+	c.x = Mult(a.x, b);
+	c.y = Mult(a.y, b);
+	c.z = Mult(a.z, b);
+	return c;
 }
 
 int32_t norm(Vector3D a){ //find norm
@@ -118,6 +126,22 @@ Matrix3x3 MMult(Matrix3x3 a, Matrix3x3 b){ //Matrix mult
 	svar.z.z = dot(a_vect3, b_vect3);
 
 	return svar;
+}
+
+Vector3D MVMult(Matrix3x3 a, Vector3D b){
+	a = transpose(a);
+	Vector3D a_vect1;
+	Vector3D a_vect2;
+	Vector3D a_vect3;
+	a_vect1 = a.x;
+	a_vect2 = a.y;
+	a_vect3 = a.z;
+
+	Vector3D c;
+	c.x = dot(a_vect1, b);
+	c.y = dot(a_vect2, b);
+	c.z = dot(a_vect3, b);
+	return c;
 }
 
 void print_matrix(Matrix3x3 a) {
