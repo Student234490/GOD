@@ -28,6 +28,7 @@
 #include "i2c.h"
 #include "lsm9ds1.h"
 #include "vector.h"
+#include "magnet.h"
 
 /* USER CODE END Includes */
 
@@ -109,16 +110,30 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   I2C_Scan(&hi2c3);
+int32_t r = 417542963; // Earth's radius in fixed point 16.16 format
+int32_t phi = convert(87); // 30 degrees in fixed point 16.16 format
+int32_t theta = 5701691; // 30 degrees in fixed point 16.16 format
+int32_t days = 478740480; // 15 years in fixed point 16.16 format (15 * 365.25 * 24 * 3600, converted to fixed point)
+int32_t vector[3];
+magnet(r, theta, phi, days, vector);
+int i;
+for (i=0; i<3; i++) {
+	printf("Res %i: ", i);
+	printFix(vector[i]);
+	printf("\r\n");
+}
   while (1)
   {
-	  printFixVector(lsmMagOut(&hi2c3));
-	  printf("\r\n");
-	  printVector(lsmMagRead(&hi2c3));
-	  printf("\r\n");
+	}
+	/*
+	printFixVector(lsmMagOut(&hi2c3));
+	printf("\r\n");
+	printVector(lsmMagRead(&hi2c3));
+	printf("\r\n");
+	*/
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
   /* USER CODE END 3 */
 }
 
