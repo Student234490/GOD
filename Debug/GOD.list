@@ -1176,6 +1176,11 @@ void magnet(int32_t r, int32_t theta, int32_t phi, int32_t days, int32_t buffer[
  8000bc6:	633b      	str	r3, [r7, #48]	; 0x30
  8000bc8:	466b      	mov	r3, sp
  8000bca:	60bb      	str	r3, [r7, #8]
+	 * Input2: 16.16 latitude in degrees, where 0 is equator, 90 is north pole and -90 is south pole
+	 * Input3: 16.16 longitude in degrees, ranging from -180 to 180, where 0 is the prime meridian
+	 * Input4: 16.16 decimal days since 2000
+	 * Input5: 3-array of int32_t to be changed to Br, Bt and Bp respectively, in Rasmus units
+	 */
 	printf("Theta input: ");
  8000bcc:	4892      	ldr	r0, [pc, #584]	; (8000e18 <magnet+0x260>)
  8000bce:	f004 f98b 	bl	8004ee8 <iprintf>
@@ -2531,14 +2536,14 @@ printFix(r);
 printf("\r\n");
  80019a2:	481a      	ldr	r0, [pc, #104]	; (8001a0c <main+0xb0>)
  80019a4:	f003 fb3c 	bl	8005020 <puts>
-int32_t phi = convert(87); // 30 degrees in fixed point 16.16 format
+int32_t phi = convert(87);
  80019a8:	2057      	movs	r0, #87	; 0x57
  80019aa:	f7fe fea1 	bl	80006f0 <convert>
  80019ae:	6178      	str	r0, [r7, #20]
-int32_t theta = 5701691; // 30 degrees in fixed point 16.16 format
+int32_t theta = 5701691;
  80019b0:	4b17      	ldr	r3, [pc, #92]	; (8001a10 <main+0xb4>)
  80019b2:	613b      	str	r3, [r7, #16]
-int32_t days = 478740480; // 15 years in fixed point 16.16 format (15 * 365.25 * 24 * 3600, converted to fixed point)
+int32_t days = 478740480;
  80019b4:	4b17      	ldr	r3, [pc, #92]	; (8001a14 <main+0xb8>)
  80019b6:	60fb      	str	r3, [r7, #12]
 int32_t vector[3];

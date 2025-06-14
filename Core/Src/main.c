@@ -114,9 +114,9 @@ int32_t r = REarth16km + Rational(2,10); // Earth's radius in fixed point 16.16 
 printf("r : ");
 printFix(r);
 printf("\r\n");
-int32_t phi = convert(87); // 30 degrees in fixed point 16.16 format
-int32_t theta = 5701691; // 30 degrees in fixed point 16.16 format
-int32_t days = 478740480; // 15 years in fixed point 16.16 format (15 * 365.25 * 24 * 3600, converted to fixed point)
+int32_t phi = convert(87);
+int32_t theta = 5701691;
+int32_t days = 478740480;
 int32_t vector[3];
 magnet(r, theta, phi, days, vector);
 int i;
