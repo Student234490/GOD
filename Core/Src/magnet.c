@@ -54,6 +54,13 @@ int32_t toRad(int32_t angledeg) {
 }
 
 void magnet(int32_t r, int32_t theta, int32_t phi, int32_t days, int32_t buffer[3]) {
+	/*
+	 * Input1: 16.16 distance from earth center,
+	 * Input2: 16.16 latitude in degrees, where 0 is equator, 90 is north pole and -90 is south pole
+	 * Input3: 16.16 longitude in degrees, ranging from -180 to 180, where 0 is the prime meridian
+	 * Input4: 16.16 decimal days since 2000
+	 * Input5: 3-array of int32_t to be changed to Br, Bt and Bp respectively, in Rasmus units
+	 */
 	printf("Theta input: ");
 	printFix(theta);
 	printf("\r\n");

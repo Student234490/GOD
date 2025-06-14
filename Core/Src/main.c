@@ -39,7 +39,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define REarth16km 417542963
 
 /* USER CODE END PD */
 
@@ -110,7 +110,10 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   I2C_Scan(&hi2c3);
-int32_t r = 417542963; // Earth's radius in fixed point 16.16 format
+int32_t r = REarth16km + Rational(2,10); // Earth's radius in fixed point 16.16 format
+printf("r : ");
+printFix(r);
+printf("\r\n");
 int32_t phi = convert(87); // 30 degrees in fixed point 16.16 format
 int32_t theta = 5701691; // 30 degrees in fixed point 16.16 format
 int32_t days = 478740480; // 15 years in fixed point 16.16 format (15 * 365.25 * 24 * 3600, converted to fixed point)
