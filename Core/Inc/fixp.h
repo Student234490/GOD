@@ -1,3 +1,10 @@
+/*
+ * fixp.h
+ *
+ *  Created on: 6. jun. 2025
+ *      Author: theis
+ */
+
 #ifndef _FIXP_H_
 #define _FIXP_H_
 
@@ -34,6 +41,10 @@
     _result; \
 })
 
+#define FIX16_MULT(a, b) ( (int32_t)(((int64_t)(a) * (int64_t)(b)) >> FIX16_SHIFT) ) // No change; keep intermediate 64-bit multiplication.
+#define FIX16_DIV(a, b)  ( (int32_t)(((int64_t)(a) << FIX16_SHIFT) / (int64_t)(b)) ) // Still uses 64-bit intermediate.
+
+#define PI16 Rational(355,113)
 
 /* Exported functions -------------------------------------------------- */
 
@@ -43,5 +54,6 @@ int32_t squareroot(uint32_t x); // Returns the square root of a 16.16 fixed poin
 int32_t expand(int32_t i); // Converts an 18.14 fixed point number to 16.16
 int32_t convert(int32_t i); // converts a 32.0 fixed point number to 16.16
 int32_t inconvert(int32_t i); // converts a 16.16 fixed point number to 32.0
+int32_t abs(int32_t i); // absolute value
 
 #endif /* _FIXP_H_ */

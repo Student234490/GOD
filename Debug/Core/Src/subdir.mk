@@ -6,10 +6,15 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Core/Src/fixp.c \
+<<<<<<< HEAD
 ../Core/Src/i2c.c \
 ../Core/Src/lsm9ds1.c \
 ../Core/Src/luts.c \
 ../Core/Src/magnet.c \
+=======
+../Core/Src/gps.c \
+../Core/Src/luts.c \
+>>>>>>> 670b67f164f961599037d2ee1bd755e726395a3f
 ../Core/Src/main.c \
 ../Core/Src/stm32g4xx_hal_msp.c \
 ../Core/Src/stm32g4xx_it.c \
@@ -21,10 +26,15 @@ C_SRCS += \
 
 OBJS += \
 ./Core/Src/fixp.o \
+<<<<<<< HEAD
 ./Core/Src/i2c.o \
 ./Core/Src/lsm9ds1.o \
 ./Core/Src/luts.o \
 ./Core/Src/magnet.o \
+=======
+./Core/Src/gps.o \
+./Core/Src/luts.o \
+>>>>>>> 670b67f164f961599037d2ee1bd755e726395a3f
 ./Core/Src/main.o \
 ./Core/Src/stm32g4xx_hal_msp.o \
 ./Core/Src/stm32g4xx_it.o \
@@ -36,10 +46,15 @@ OBJS += \
 
 C_DEPS += \
 ./Core/Src/fixp.d \
+<<<<<<< HEAD
 ./Core/Src/i2c.d \
 ./Core/Src/lsm9ds1.d \
 ./Core/Src/luts.d \
 ./Core/Src/magnet.d \
+=======
+./Core/Src/gps.d \
+./Core/Src/luts.d \
+>>>>>>> 670b67f164f961599037d2ee1bd755e726395a3f
 ./Core/Src/main.d \
 ./Core/Src/stm32g4xx_hal_msp.d \
 ./Core/Src/stm32g4xx_it.d \
@@ -57,7 +72,11 @@ Core/Src/%.o: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
+<<<<<<< HEAD
 	-$(RM) ./Core/Src/fixp.d ./Core/Src/fixp.o ./Core/Src/i2c.d ./Core/Src/i2c.o ./Core/Src/lsm9ds1.d ./Core/Src/lsm9ds1.o ./Core/Src/luts.d ./Core/Src/luts.o ./Core/Src/magnet.d ./Core/Src/magnet.o ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/stm32g4xx_hal_msp.d ./Core/Src/stm32g4xx_hal_msp.o ./Core/Src/stm32g4xx_it.d ./Core/Src/stm32g4xx_it.o ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/system_stm32g4xx.d ./Core/Src/system_stm32g4xx.o ./Core/Src/triad.d ./Core/Src/triad.o ./Core/Src/vector.d ./Core/Src/vector.o
+=======
+	-$(RM) ./Core/Src/fixp.d ./Core/Src/fixp.o ./Core/Src/gps.d ./Core/Src/gps.o ./Core/Src/luts.d ./Core/Src/luts.o ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/stm32g4xx_hal_msp.d ./Core/Src/stm32g4xx_hal_msp.o ./Core/Src/stm32g4xx_it.d ./Core/Src/stm32g4xx_it.o ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/system_stm32g4xx.d ./Core/Src/system_stm32g4xx.o
+>>>>>>> 670b67f164f961599037d2ee1bd755e726395a3f
 
 .PHONY: clean-Core-2f-Src
 

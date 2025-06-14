@@ -29,7 +29,6 @@ int32_t squareroot(uint32_t x) {
     return (uint32_t)(approx);
 }
 
-
 int32_t Rational(int a, int b) {
 	return(FIX16_DIV(convert(a), convert(b)));
 }
@@ -43,7 +42,7 @@ void printFix(int32_t i) {
             printf("-");
             i = ~i + 1;
         }
-        printf("%ld.%04ld", i >> 16, 10000 * (uint32_t)(i & 0xFFFF) >> 16);
+        printf("%ld.%04ld", i >> 16, (10000 * (uint32_t)(i & 0xFFFF)) >> 16);
         // Print a maximum of 4 decimal digits to avoid overflow
     }
 
@@ -70,4 +69,13 @@ int32_t inconvert(int32_t i) {
 	 * Returns: A 32.0 number, rounded to the nearest integer.
 	 */
 	return((i + ((1 << (FIX16_SHIFT - 1)))) >> FIX16_SHIFT);
+}
+
+int32_t abs(int32_t i) {
+	if (i < 0) {
+		return -i;
+	}
+	else {
+		return i;
+	}
 }

@@ -1,0 +1,33 @@
+/*
+ * gps.h
+ *
+ *  Created on: Jun 6, 2025
+ *      Author: theis
+ */
+#include "stdint.h"
+
+#ifndef INC_GPS_H_
+#define INC_GPS_H_
+#define RING_BUF_SIZE 512
+#define LINEBUFFERSIZE 100
+
+typedef struct {
+    uint8_t buffer[RING_BUF_SIZE];
+    volatile uint16_t head;  // write index
+    volatile uint16_t tail;  // read index
+} RingBuffer;
+
+typedef struct {
+	int32_t latitude;
+	int32_t longitude;
+	int32_t altitude;
+	char active;
+} GPSRead_t;
+
+void RingBuffer_Write(RingBuffer *rb, uint8_t byte); // runs in the interrupt
+int RingBuffer_Read(RingBuffer *rb, uint8_t *byte); // runs in process_uart_data
+void process_uart_data(RingBuffer *rb, GPSRead_t *gps); // runs in main script
+void getGPGGA(char sentence[LINEBUFFERSIZE], GPSRead_t *gps);
+void printGPS(GPSRead_t GPS);
+
+#endif /* INC_GPS_H_ */
