@@ -41,11 +41,6 @@
     _result; \
 })
 
-#define FIX16_MULT(a, b) ( (int32_t)(((int64_t)(a) * (int64_t)(b)) >> FIX16_SHIFT) ) // No change; keep intermediate 64-bit multiplication.
-#define FIX16_DIV(a, b)  ( (int32_t)(((int64_t)(a) << FIX16_SHIFT) / (int64_t)(b)) ) // Still uses 64-bit intermediate.
-
-#define PI16 Rational(355,113)
-
 /* Exported functions -------------------------------------------------- */
 
 int32_t Rational(int a, int b);

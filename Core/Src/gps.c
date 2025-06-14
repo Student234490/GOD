@@ -271,6 +271,7 @@ void process_uart_data(RingBuffer *rb, GPSRead_t *gps) {
 
         if (c == '\n') {
             sentence[indx] = '\0';  // Null-terminate the string
+            printf("Log:   UART Sentence received \r\n");
             getGPGGA(sentence, gps); // den her linje er lidt cray-cray @rasmus ladegaard
             indx = 0;  // Reset for next line
         }
@@ -278,11 +279,15 @@ void process_uart_data(RingBuffer *rb, GPSRead_t *gps) {
 }
 
 void printGPS(GPSRead_t GPS) {
-	printf("Active: %i ~ Latitude: ", GPS.active);
-	printFix(GPS.latitude);
-	printf("deg ~ Longitude: ");
-	printFix(GPS.longitude);
-	printf("deg ~ Altitude: ");
-	printFix(GPS.altitude);
-	printf("m. \r\n");
+	if (GPS.active) {
+		printf("Active: %i ~ Latitude: ", GPS.active);
+		printFix(GPS.latitude);
+		printf("deg ~ Longitude: ");
+		printFix(GPS.longitude);
+		printf("deg ~ Altitude: ");
+		printFix(GPS.altitude);
+		printf("m. \r\n");
+	} else {
+		printf("Error: GPS inactive \r\n");
+	}
 }

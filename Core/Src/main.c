@@ -29,6 +29,7 @@
 #include "lsm9ds1.h"
 #include "vector.h"
 #include "magnet.h"
+#include "gps.h"
 
 /* USER CODE END Includes */
 
@@ -104,12 +105,16 @@ int main(void)
   MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
   lsmCtrlReg(&hi2c3);
+  GPSRead_t GPS = {0,0,0,0};
+  HAL_Delay(10);
+  HAL_UART_Receive_IT(&huart1, rx_buffer, 1);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  I2C_Scan(&hi2c3);
+
+  /*I2C_Scan(&hi2c3);
 int32_t r = REarth16km + Rational(2,10); // Earth's radius in fixed point 16.16 format
 printf("r : ");
 printFix(r);
@@ -125,8 +130,19 @@ for (i=0; i<3; i++) {
 	printFix(vector[i]);
 	printf("\r\n");
 }
+*/
+int i = 0;
   while (1)
   {
+	  process_uart_data(&uart_rx_buf, &GPS);
+	  HAL_Delay(10);
+	  i++;
+	  	  if (!(i % 1000)) {
+	  		  i = 0;
+	  		  printGPS(GPS);
+	  		  //printVector(lsmMagRead(&hi2c3));
+	  		  //printf("\r\n");
+	  	  }
 	}
 	/*
 	printFixVector(lsmMagOut(&hi2c3));
@@ -352,8 +368,10 @@ int _write(int file, char *data, int len)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart == &huart1) {
+		//printf("UART Error: ISR=0x%08lX, SR=0x%08lX\r\n", huart->Instance->ISR, huart->Instance->RQR);
 		 RingBuffer_Write(&uart_rx_buf, rx_buffer[0]);
 		 HAL_UART_Receive_IT(&huart1, rx_buffer, 1);  // Re-arm
+		 //printf("RX: %c (0x%02X)\r\n", rx_buffer[0], rx_buffer[0]);
 	}
 }
 

@@ -8,8 +8,8 @@
 
 #ifndef INC_GPS_H_
 #define INC_GPS_H_
-#define RING_BUF_SIZE 512
-#define LINEBUFFERSIZE 100
+#define RING_BUF_SIZE 1024
+#define LINEBUFFERSIZE 250
 
 typedef struct {
     uint8_t buffer[RING_BUF_SIZE];
