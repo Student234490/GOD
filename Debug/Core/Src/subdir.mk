@@ -16,6 +16,7 @@ C_SRCS += \
 ../Core/Src/syscalls.c \
 ../Core/Src/sysmem.c \
 ../Core/Src/system_stm32g4xx.c \
+../Core/Src/triad.c \
 ../Core/Src/vector.c 
 
 OBJS += \
@@ -30,6 +31,7 @@ OBJS += \
 ./Core/Src/syscalls.o \
 ./Core/Src/sysmem.o \
 ./Core/Src/system_stm32g4xx.o \
+./Core/Src/triad.o \
 ./Core/Src/vector.o 
 
 C_DEPS += \
@@ -44,6 +46,7 @@ C_DEPS += \
 ./Core/Src/syscalls.d \
 ./Core/Src/sysmem.d \
 ./Core/Src/system_stm32g4xx.d \
+./Core/Src/triad.d \
 ./Core/Src/vector.d 
 
 
@@ -54,7 +57,7 @@ Core/Src/%.o: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/fixp.d ./Core/Src/fixp.o ./Core/Src/i2c.d ./Core/Src/i2c.o ./Core/Src/lsm9ds1.d ./Core/Src/lsm9ds1.o ./Core/Src/luts.d ./Core/Src/luts.o ./Core/Src/magnet.d ./Core/Src/magnet.o ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/stm32g4xx_hal_msp.d ./Core/Src/stm32g4xx_hal_msp.o ./Core/Src/stm32g4xx_it.d ./Core/Src/stm32g4xx_it.o ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/system_stm32g4xx.d ./Core/Src/system_stm32g4xx.o ./Core/Src/vector.d ./Core/Src/vector.o
+	-$(RM) ./Core/Src/fixp.d ./Core/Src/fixp.o ./Core/Src/i2c.d ./Core/Src/i2c.o ./Core/Src/lsm9ds1.d ./Core/Src/lsm9ds1.o ./Core/Src/luts.d ./Core/Src/luts.o ./Core/Src/magnet.d ./Core/Src/magnet.o ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/stm32g4xx_hal_msp.d ./Core/Src/stm32g4xx_hal_msp.o ./Core/Src/stm32g4xx_it.d ./Core/Src/stm32g4xx_it.o ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/system_stm32g4xx.d ./Core/Src/system_stm32g4xx.o ./Core/Src/triad.d ./Core/Src/triad.o ./Core/Src/vector.d ./Core/Src/vector.o
 
 .PHONY: clean-Core-2f-Src
 
