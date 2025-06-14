@@ -21,7 +21,7 @@
   **/
 // Formula: sin(2*pi*t/T)
 
-extern const int16_t sinlut[512];
+extern const int16_t sinlut[1024];
 
 /* Exported macro -------------------------------------------------------*/
 
@@ -31,6 +31,7 @@ extern const int16_t sinlut[512];
 int32_t sinus(int t); // takes integer representing a n-LUT degree, returns 16.16 decimal sine
 int32_t cosinus(int t); // takes integer representing a n-LUT degree, returns 16.16 decimal cosine
 int32_t sinrad(int32_t t); // takes integer representing a 16.16 radians, returns 16.16 decimal sine
+int32_t cosrad(int32_t t); // takes integer representing a 16.16 radians, returns 16.16 decimal cosine
 
 
 #endif /* INC_LUTS_H_ */

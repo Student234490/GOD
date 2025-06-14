@@ -1,14 +1,6 @@
 /*
  * fixp.c
  *
- *  Created on: 6. jun. 2025
- *      Author: theis
- */
-
-
-/*
- * fixp.c
- *
  *  Created on: 8. jan. 2025
  *      Author: theis
  */

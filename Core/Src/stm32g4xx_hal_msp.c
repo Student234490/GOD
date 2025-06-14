@@ -81,68 +81,85 @@ void HAL_MspInit(void)
 }
 
 /**
-* @brief SPI MSP Initialization
+* @brief I2C MSP Initialization
 * This function configures the hardware resources used in this example
-* @param hspi: SPI handle pointer
+* @param hi2c: I2C handle pointer
 * @retval None
 */
-void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
+void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(hspi->Instance==SPI1)
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+  if(hi2c->Instance==I2C3)
   {
-  /* USER CODE BEGIN SPI1_MspInit 0 */
+  /* USER CODE BEGIN I2C3_MspInit 0 */
 
-  /* USER CODE END SPI1_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_SPI1_CLK_ENABLE();
+  /* USER CODE END I2C3_MspInit 0 */
+  /** Initializes the peripherals clocks
+  */
+    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_I2C3;
+    PeriphClkInit.I2c3ClockSelection = RCC_I2C3CLKSOURCE_PCLK1;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+    {
+      Error_Handler();
+    }
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
-    /**SPI1 GPIO Configuration
-    PA5     ------> SPI1_SCK
-    PA6     ------> SPI1_MISO
-    PA7     ------> SPI1_MOSI
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    /**I2C3 GPIO Configuration
+    PA8     ------> I2C3_SCL
+    PB5     ------> I2C3_SDA
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pin = GPIO_PIN_8;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    GPIO_InitStruct.Alternate = GPIO_AF2_I2C3;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /* USER CODE BEGIN SPI1_MspInit 1 */
+    GPIO_InitStruct.Pin = GPIO_PIN_5;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF8_I2C3;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /* USER CODE END SPI1_MspInit 1 */
+    /* Peripheral clock enable */
+    __HAL_RCC_I2C3_CLK_ENABLE();
+  /* USER CODE BEGIN I2C3_MspInit 1 */
+
+  /* USER CODE END I2C3_MspInit 1 */
   }
 
 }
 
 /**
-* @brief SPI MSP De-Initialization
+* @brief I2C MSP De-Initialization
 * This function freeze the hardware resources used in this example
-* @param hspi: SPI handle pointer
+* @param hi2c: I2C handle pointer
 * @retval None
 */
-void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
+void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
 {
-  if(hspi->Instance==SPI1)
+  if(hi2c->Instance==I2C3)
   {
-  /* USER CODE BEGIN SPI1_MspDeInit 0 */
+  /* USER CODE BEGIN I2C3_MspDeInit 0 */
 
-  /* USER CODE END SPI1_MspDeInit 0 */
+  /* USER CODE END I2C3_MspDeInit 0 */
     /* Peripheral clock disable */
-    __HAL_RCC_SPI1_CLK_DISABLE();
+    __HAL_RCC_I2C3_CLK_DISABLE();
 
-    /**SPI1 GPIO Configuration
-    PA5     ------> SPI1_SCK
-    PA6     ------> SPI1_MISO
-    PA7     ------> SPI1_MOSI
+    /**I2C3 GPIO Configuration
+    PA8     ------> I2C3_SCL
+    PB5     ------> I2C3_SDA
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_8);
 
-  /* USER CODE BEGIN SPI1_MspDeInit 1 */
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_5);
 
-  /* USER CODE END SPI1_MspDeInit 1 */
+  /* USER CODE BEGIN I2C3_MspDeInit 1 */
+
+  /* USER CODE END I2C3_MspDeInit 1 */
   }
 
 }
