@@ -85,7 +85,7 @@ void magnet(int32_t r, int32_t theta, int32_t phi, int32_t days, int32_t buffer[
     printf("\r\n");
     int32_t a = 417542963;
 
-    int Nmodel = 2; // hard code
+    int Nmodel = 13; // hard code
     int Nmax = Nmodel * (Nmodel + 3 ) / 2;
 
     int32_t g[Nmodel][Nmodel+1];
@@ -175,9 +175,9 @@ void magnet(int32_t r, int32_t theta, int32_t phi, int32_t days, int32_t buffer[
     }
     Bt = -Bt;
     Bp = -DIV(Bp, sinrad(theta));
-    buffer[0] = Br;
-    buffer[1] = Bt;
-    buffer[2] = Bp;
+    buffer[0] = Bt;
+    buffer[1] = Bp;
+    buffer[2] = Br;
 }
 
 /*

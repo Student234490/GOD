@@ -114,14 +114,14 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  /*I2C_Scan(&hi2c3);
+  I2C_Scan(&hi2c3);
 int32_t r = REarth16km + Rational(2,10); // Earth's radius in fixed point 16.16 format
 printf("r : ");
 printFix(r);
 printf("\r\n");
-int32_t phi = convert(87);
-int32_t theta = 5701691;
-int32_t days = 478740480;
+int32_t phi = convert(30);
+int32_t theta = convert(45);
+int32_t days = 24510000;
 int32_t vector[3];
 magnet(r, theta, phi, days, vector);
 int i;
@@ -130,8 +130,8 @@ for (i=0; i<3; i++) {
 	printFix(vector[i]);
 	printf("\r\n");
 }
-*/
-int i = 0;
+
+i = 0;
   while (1)
   {
 	  process_uart_data(&uart_rx_buf, &GPS);

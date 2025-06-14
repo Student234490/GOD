@@ -21,7 +21,7 @@
   **/
 // Formula: sin(2*pi*t/T)
 
-extern const int16_t sinlut[1024];
+extern const int16_t sinlut[2048];
 
 /* Exported macro -------------------------------------------------------*/
 
