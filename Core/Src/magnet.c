@@ -89,8 +89,8 @@ void magnet(int32_t r, int32_t theta, int32_t phi, int32_t days, int32_t buffer[
 
     int i;
     for (i = 0; i < Nmax; i++) { // 0 to 103
-        g[Ns[i]-1][Ms[i]] = Gs[i] + MULT(GVs[i], DIV(days, 23920640)); // 360 til 16.16
-        h[Ns[i]-1][Ms[i]] = Hs[i] + MULT(HVs[i], DIV(days, 23920640));
+        g[Ns[i]-1][Ms[i]] = (Gs[i] + MULT(GVs[i], DIV(days, 23920640)) + 2 /* 1 << 1 */ ) >> 2; // 360 til 16.16
+        h[Ns[i]-1][Ms[i]] = (Hs[i] + MULT(HVs[i], DIV(days, 23920640)) + 2 /* 1 << 1 */ ) >> 2;
     }
 
     int32_t Bt = 0;
