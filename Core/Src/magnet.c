@@ -94,6 +94,7 @@ void magnet(int32_t r, int32_t theta, int32_t phi, int32_t days, int32_t buffer[
     }
 
     int32_t Bt = 0;
+    int64_t Br64 = 0; /////////////////////////yumyum
     int32_t Br = 0;
     int32_t Bp = 0;
 
@@ -160,14 +161,16 @@ void magnet(int32_t r, int32_t theta, int32_t phi, int32_t days, int32_t buffer[
                 int32_t hcos = MULT(hnm, cos_mphi);
 
                 // Magnetic field component updates
-                Br = Br + MULT(MULT(ar_pow, (n + 1)<<16), MULT((gcos + hsin), P2));
+                Br64 = Br64 + MULT(MULT(ar_pow, (n + 1)<<16), MULT((gcos + hsin), P2));
                 Bt = Bt + MULT(MULT(ar_pow, 1<<16), MULT((gcos + hsin), dP2));
                 Bp = Bp + MULT(MULT(ar_pow, 1<<16), MULT(MULT(convert(m), (-gsin + hcos)), P2));
             }
         }
     }
-    Bt = -Bt;
-    Bp = -DIV(Bp, sinrad(theta));
+    ///////////////////////////////enhed er 1/4 af normalt for at fix overflow
+    Br = Br64 << 2;
+    Bt = -Bt << 2;
+    Bp = -DIV(Bp, sinrad(theta)) << 2;
     buffer[0] = Br;
     buffer[1] = Bt;
     buffer[2] = Bp;
