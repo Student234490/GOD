@@ -30,6 +30,7 @@
 #include "vector.h"
 #include "magnet.h"
 #include "gps.h"
+#include "lcd.h"
 
 /* USER CODE END Includes */
 
@@ -51,6 +52,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c3;
+
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
@@ -108,6 +110,7 @@ int main(void)
   GPSRead_t GPS = {0,0,0,0};
   HAL_Delay(10);
   HAL_UART_Receive_IT(&huart1, rx_buffer, 1);
+  LCD_Init();
 
   /* USER CODE END 2 */
 
@@ -131,7 +134,14 @@ for (i=0; i<3; i++) {
 	printf("\r\n");
 }
 
+LCD_SetCursor(0, 0);
+    LCD_SendString("Hello STM32!");
+
+    LCD_SetCursor(1, 0);
+    LCD_SendString("LCD is working :)");
+
 i = 0;
+
   while (1)
   {
 	  process_uart_data(&uart_rx_buf, &GPS);
@@ -151,6 +161,7 @@ i = 0;
 	printf("\r\n");
 	*/
     /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   /* USER CODE END 3 */
 }
@@ -342,10 +353,34 @@ static void MX_USART2_UART_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5
+                          |GPIO_PIN_6, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : PA0 PA1 PA4 PA5
+                           PA6 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5
+                          |GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB3 */
+  GPIO_InitStruct.Pin = GPIO_PIN_3;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 }
 
