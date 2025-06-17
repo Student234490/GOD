@@ -31,6 +31,8 @@
 #include "magnet.h"
 #include "gps.h"
 #include "lcd.h"
+#include "triad.h"
+#include <inttypes.h>
 
 /* USER CODE END Includes */
 
@@ -80,6 +82,65 @@ RingBuffer uart_rx_buf = { .head = 0, .tail = 0 }; // stores every rx_buffer in 
   * @brief  The application entry point.
   * @retval int
   */
+
+
+//////////////yap
+#define AVG_LEN   10                           /* window length          */
+
+static Vector3D acc_buf[AVG_LEN];              /* FIFO for accelerometer */
+static Vector3D mag_buf[AVG_LEN];              /* FIFO for magnetometer  */
+
+static uint8_t  buf_pos    = 0;                /* write index 0…AVG_LEN–1*/
+static uint8_t  buf_filled = 0;                /* 0…AVG_LEN               */
+
+static int64_t  acc_sum_x = 0, acc_sum_y = 0, acc_sum_z = 0;
+static int64_t  mag_sum_x = 0, mag_sum_y = 0, mag_sum_z = 0;
+
+void readSensorsAndAverage(Vector3D* acc_avg, Vector3D* mag_avg)
+{
+    /* 1. Read fresh samples (your existing drivers) */
+    Vector3D acc_raw = lsmAccRead(&hi2c3);     /* Q16.16           */
+    Vector3D mag_raw = lsmMagRead(&hi2c3);     /* Q16.16           */
+
+    /* 2. Remove oldest sample from running sum (if buffer full) */
+    if (buf_filled == AVG_LEN) {
+        acc_sum_x -= acc_buf[buf_pos].x;
+        acc_sum_y -= acc_buf[buf_pos].y;
+        acc_sum_z -= acc_buf[buf_pos].z;
+
+        mag_sum_x -= mag_buf[buf_pos].x;
+        mag_sum_y -= mag_buf[buf_pos].y;
+        mag_sum_z -= mag_buf[buf_pos].z;
+    }
+
+    /* 3. Store new sample in buffer                                     */
+    acc_buf[buf_pos] = acc_raw;
+    mag_buf[buf_pos] = mag_raw;
+
+    /* 4. Add it to running sum                                          */
+    acc_sum_x += acc_raw.x;
+    acc_sum_y += acc_raw.y;
+    acc_sum_z += acc_raw.z;
+
+    mag_sum_x += mag_raw.x;
+    mag_sum_y += mag_raw.y;
+    mag_sum_z += mag_raw.z;
+
+    /* 5. Advance circular index                                         */
+    buf_pos = (buf_pos + 1) % AVG_LEN;
+    if (buf_filled < AVG_LEN) buf_filled++;
+
+    /* 6. Return mean = sum / buf_filled (Q16.16 division)               */
+    int32_t div = buf_filled;                   /* 1…AVG_LEN         */
+    acc_avg->x = (int32_t)(acc_sum_x / div);
+    acc_avg->y = (int32_t)(acc_sum_y / div);
+    acc_avg->z = (int32_t)(acc_sum_z / div);
+
+    mag_avg->x = (int32_t)(mag_sum_x / div);
+    mag_avg->y = (int32_t)(mag_sum_y / div);
+    mag_avg->z = (int32_t)(mag_sum_z / div);
+}
+
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -118,6 +179,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
   I2C_Scan(&hi2c3);
+
 int32_t r = REarth16km + Rational(2,10); // Earth's radius in fixed point 16.16 format
 printf("r : ");
 printFix(r);
@@ -134,26 +196,77 @@ for (i=0; i<3; i++) {
 	printf("\r\n");
 }
 
-LCD_SetCursor(0, 0);
-    LCD_SendString("Hello STM32!");
 
-    LCD_SetCursor(1, 0);
-    LCD_SendString("LCD is working :)");
+//Vector3D M1 = {1<<16,0,0};
+//Vector3D g1 = {0,0,-10<<16};
+Vector3D M2 = {convert(100),              /* Copenhagen field */
+                      0,
+                      convert(-166)};
+Vector3D g2 = { 0, 0, convert(1)};
+
+
+
+LCD_SetCursor(0, 0);
+    LCD_SendString("Roll");
+    LCD_SetCursor(0, 6);
+    LCD_SendString("Pitch");
+    LCD_SetCursor(0, 12);
+    LCD_SendString("Yaw");
 
 i = 0;
+//Vector3D magdata;
+//Vector3D accdata;
+Vector3D degrot;
+Matrix3x3 rot;
+Vector3D accdata = {0, 0, convert(1)}; // gravity straight down
+Vector3D magdata = {convert(1), 0, 0};  // magnetic north along X
+Matrix3x3 Rnb;
+Vector3D mag_raw;
 
   while (1)
   {
+	  accdata = lsmAccRead(&hi2c3);
+
+	  printf("\n acc: %ld, %ld, %ld \n",accdata.x,accdata.y, accdata.z);
+	  printf("mag: %ld, %ld, %ld \n",magdata.x,magdata.y, magdata.z);
+
+	  //readSensorsAndAverage(&accdata, &magdata);
+	  mag_raw = lsmMagRead(&hi2c3);
+	  magdata.x = mag_raw.y + 2897;
+	  magdata.y = -mag_raw.x + 3352;
+	  magdata.z = mag_raw.z + 3200;
+	  triad(magdata,accdata,M2,g2, &rot);
+	  Rnb = transpose(rot);
+	  rot2eulerZYX(&Rnb,&degrot);
+	  printf("\n %ld, %ld, %ld \n",degrot.x, degrot.y, degrot.z);
+
+	  HAL_Delay(100);
+
+	  //////////////////////////////////LCD deg print//////////////////
+	  LCD_SetCursor(1, 0);
+	  LCD_PrintAngle(inconvert(degrot.x));
+	  HAL_Delay(10); //vigtigt der skal være delay ellers virker det ikke at rykke cursor
+
+	  LCD_SetCursor(1, 6);
+	  LCD_PrintAngle(inconvert(degrot.y));
+	  HAL_Delay(10);
+
+	  LCD_SetCursor(1, 12);
+	  LCD_PrintAngle(inconvert(degrot.z));
+	  HAL_Delay(10);
+	  //////////////////////////////////LCD deg print end//////////////
+
 	  process_uart_data(&uart_rx_buf, &GPS);
 	  HAL_Delay(10);
 	  i++;
-	  	  if (!(i % 1000)) {
-	  		  i = 0;
-	  		  printGPS(GPS);
+	  	  //if (!(i % 1000)) {
+	  		  //i = 0;
+	  		  //printGPS(GPS);
 	  		  //printVector(lsmMagRead(&hi2c3));
 	  		  //printf("\r\n");
-	  	  }
+	  	  //}
 	}
+
 	/*
 	printFixVector(lsmMagOut(&hi2c3));
 	printf("\r\n");

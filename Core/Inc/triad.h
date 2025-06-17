@@ -10,7 +10,8 @@
 #include <stdint.h>
 #include <vector.h>
 
-Matrix3x3 triad(Vector3D B1, Vector3D g1, Vector3D B2, Vector3D g2);
+void triad(Vector3D B1, Vector3D g1, Vector3D B2, Vector3D g2, Matrix3x3* result);
+void rot2eulerZYX(const Matrix3x3* R, Vector3D* angles);
 
 
 #endif /* INC_TRIAD_H_ */
