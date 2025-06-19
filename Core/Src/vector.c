@@ -2,6 +2,7 @@
 #include <math.h>
 #include <vector.h>
 #include <fixp.h>
+#include "luts.h"
 
 //////////////////Vector////////////////////////////////////////////
 
@@ -13,7 +14,7 @@ Vector3D cross(Vector3D a, Vector3D b){
 	Vector3D c;
 	c.x = Mult(a.y,b.z) - Mult(a.z,b.y);
 	c.y = Mult(a.z,b.x) - Mult(a.x,b.z);
-	c.z = Mult(a.x,b.y) - Mult(a.y,b.z);
+	c.z = Mult(a.x,b.y) - Mult(a.y,b.x);
 	return c;
 }
 
@@ -29,7 +30,7 @@ Vector3D scale_vector(Vector3D a, int32_t k) {
 	Vector3D vector;
 	vector.x = Mult(a.x,k);
 	vector.y = Mult(a.y,k);
-	vector.z = Mult(a.y,k);
+	vector.z = Mult(a.z,k);
 	return vector;
 }
 
@@ -45,8 +46,11 @@ Vector3D subtract_vector(Vector3D a, Vector3D b){
 	return add_vector(a, scale_vector(b, convert(-1)));
 }
 
-int32_t norm(Vector3D a){ //find norm
-	return sqrt(Mult(a.x, a.x) + Mult(a.y, a.y) + Mult(a.z, a.z));
+int32_t norm(Vector3D a) {
+    int64_t sum = (int64_t)Mult(a.x, a.x)
+                + (int64_t)Mult(a.y, a.y)
+                + (int64_t)Mult(a.z, a.z);
+    return sqrt((int32_t)(sum >> 16));
 }
 
 int32_t cos_theta(Vector3D a, Vector3D b){ //cos_theta (later use??)
@@ -191,6 +195,75 @@ void printFixMatrix(Matrix3x3 a) {
 
 void print_matrix(Matrix3x3 a) {
     printf("(%ld, %ld, %ld)\n", a.x.x, a.y.x, a.z.x);
-    printf("(%ld, %ld, %ld)\n", a.x.y, a.y.y, a.y.z);
+    printf("(%ld, %ld, %ld)\n", a.x.y, a.y.y, a.z.y);
     printf("(%ld, %ld, %ld)\n", a.x.z, a.y.z, a.z.z);
 }
+
+// raw square in Q32.32
+static inline int64_t SquareRaw(int32_t A) {
+    return (int64_t)A * (int64_t)A;
+}
+
+// integer sqrt of a 64bit value
+static inline uint32_t isqrt_u64(uint64_t x) {
+    uint64_t op = x;
+    uint64_t res = 0;
+    // highest power-of-4 <= 2^62
+    uint64_t one = (uint64_t)1 << 62;
+    while (one > op) one >>= 2;
+    while (one) {
+        if (op >= res + one) {
+            op  -= res + one;
+            res  = (res >> 1) + one;
+        } else {
+            res >>= 1;
+        }
+        one >>= 2;
+    }
+    return (uint32_t)res;
+}
+
+// Q16.16 vector norm
+int32_t norm_q16(Vector3D a) {
+    uint64_t sum = 0;
+    sum += (uint64_t)SquareRaw(a.x);
+    sum += (uint64_t)SquareRaw(a.y);
+    sum += (uint64_t)SquareRaw(a.z);
+    // sum // Q32.32
+    // sqrt(sum) gives Q16.16 directly
+    return (int32_t)isqrt_u64(sum);
+}
+
+static const int32_t DEG2RAD_Q16 = 1144;   /* convert(3.14159265359/180) */
+
+/* =====================================================================
+ *  rotateZ14  – rotate v about +Z by +heading (right-hand rule)
+ *    v14          : pointer to input vector (Q18.14)
+ *    headingDegQ16: desired rotation in degrees, Q16.16
+ *  returns        : rotated vector, still Q18.14
+ * ===================================================================*/
+Vector3D rotateZ14(const Vector3D *v14, int32_t headingDegQ16)
+{
+    /* 1. angle → radians (Q16.16) ------------------------------------ */
+    int32_t radQ16 = FIX16_MULT(headingDegQ16, DEG2RAD_Q16);
+
+    /* 2. lookup / compute cos & sin  (Q16.16) ------------------------ */
+    int32_t c =  cosrad(radQ16);    /* cos θ */
+    int32_t s =  sinrad(radQ16);     /* sin θ */
+
+    /* 3. rotate the horizontal part  --------------------------------- */
+    /*    x' =  x·c – y·s                                              */
+    /*    y' =  x·s + y·c                                              */
+    /*    z  unchanged                                                 */
+    int64_t xc = (int64_t)v14->x * c;      /* Q18.14 × Q16.16 → Q34.30 */
+    int64_t ys = (int64_t)v14->y * s;
+    int64_t xs = (int64_t)v14->x * s;
+    int64_t yc = (int64_t)v14->y * c;
+
+    Vector3D out;
+    out.x = (int32_t)((xc - ys) >> 16);    /* back to Q18.14 */
+    out.y = (int32_t)((xs + yc) >> 16);
+    out.z = v14->z;                        /* Z untouched    */
+    return out;
+}
+

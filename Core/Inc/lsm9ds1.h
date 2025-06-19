@@ -27,5 +27,6 @@ void lsmCtrlReg(I2C_HandleTypeDef*handle);
 Vector3D lsmMagRead(I2C_HandleTypeDef*handle);
 Vector3D lsmAccRead(I2C_HandleTypeDef*handle);
 Vector3D lsmMagOut(I2C_HandleTypeDef*handle);
+void readSensorsAndAverage(Vector3D* acc_avg, Vector3D* mag_avg, I2C_HandleTypeDef hi2c3);
 
 #endif /* INC_LSM9DS1_H_ */

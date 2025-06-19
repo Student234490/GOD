@@ -4,6 +4,7 @@
 #include <vector.h>
 #include <luts.h>
 #define PI16 205887
+#define norm(a) norm_q16(a)
 
 
 void triad(Vector3D B1, Vector3D g1, Vector3D B2, Vector3D g2, Matrix3x3* result){
