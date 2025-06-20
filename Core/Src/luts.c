@@ -71,6 +71,7 @@ int32_t cosrad(int32_t t) {
     return cosinus(integer);
 }
 
+/*
 int32_t lut_index(int32_t ratio) {
     if (ratio < 0) ratio = -ratio;
     if (ratio > (1 << 16)) ratio = (1 << 16);
@@ -78,6 +79,7 @@ int32_t lut_index(int32_t ratio) {
 }
 
 extern const int32_t asin_lut[1024];
+*/
 
 int32_t fix_asin(int32_t x) {
     if (x < -convert(1)) x = -convert(1);
@@ -99,7 +101,6 @@ int32_t fix_asin(int32_t x) {
 
     return (x >= 0) ? interp : -interp;
 }
-
 
 
 
@@ -145,86 +146,3 @@ int32_t fix_atan2(int32_t y, int32_t x) {
     if (y >= 0) return angle + PI16;            // Q2
     return angle - PI16;                        // Q3
 }
-
-
-/*
-
-#define FIX16_CLAMP(x, min, max) ((x) < (min) ? (min) : ((x) > (max) ? (max) : (x)))
-#define N_ASIN_LUT 512
-//extern const int32_t acos_lut[N_ACOS_LUT + 1];  // must be defined elsewhere
-
-int32_t asin16(int32_t x_fix) {
-    // Clamp x to [-1, 1]
-    int32_t min_x = -convert(1);
-    int32_t max_x = convert(1);
-    x_fix = FIX16_CLAMP(x_fix, min_x, max_x);
-
-    // Map x from [-1, 1] to [0, LUT_SIZE - 1]
-    int32_t x_norm = ((x_fix - min_x) * (N_ASIN_LUT - 1)) / (2 * convert(1));
-
-    int index = x_norm >> 16;              // Integer part (index into LUT)
-    int32_t frac = x_norm & 0xFFFF;        // Fractional part
-
-    if (index >= N_ASIN_LUT - 1) {
-        return asin_lut[N_ASIN_LUT - 1];
-    }
-
-    int32_t y0 = asin_lut[index];
-    int32_t y1 = asin_lut[index + 1];
-
-    // Linear interpolation: y = y0 + frac * (y1 - y0)
-    int32_t delta = y1 - y0;
-    int32_t interp = (delta * frac) >> 16;
-
-    return y0 + interp;
-}
-
-#define N_ATAN_LUT 512
-#define ATAN_INPUT_RANGE 4
-int32_t atan(int32_t x) {
-    // Input range is assumed in [-1, 1], scaled as 16.16
-    const int LUT_SIZE = 511;
-    int32_t index = ((x + convert(1)) * LUT_SIZE) >> 17; // Shift 17 = (16 + 1)
-
-    if (index < 0) index = 0;
-    if (index > LUT_SIZE) index = LUT_SIZE;
-
-    return atan_lut[index];
-}
-
-int32_t atan2_16(int32_t y, int32_t x) {
-    if (x == 0) {
-        return (y > 0) ? PI16 / 2 : -PI16 / 2;
-    }
-
-    int32_t abs_y = abs(y);
-    int32_t abs_x = abs(x);
-    int32_t angle;
-
-    if (abs_y < abs_x) {
-        int32_t r = FIX16_DIV(abs_y, abs_x);
-        angle = FIX16_MULT(r, convert(45));
-    } else {
-        int32_t r = FIX16_DIV(abs_x, abs_y);
-        angle = convert(90) - FIX16_MULT(r, convert(45));
-    }
-
-    // Compute base term: angle * π / 180
-    int32_t base = FIX16_DIV(FIX16_MULT(angle, PI16), convert(180));
-
-    // Simplified quadrant adjustment
-    if (x > 0) {
-        // Quadrants 1 and 4
-        return (y >= 0) ? base : -base;
-    } else {
-        // Quadrants 2 and 3
-        if (y >= 0) {
-            // Quadrant 2: π - base
-            return PI16 - base;
-        } else {
-            // Quadrant 3: -π + base
-            return -PI16 + base;
-        }
-    }
-}
-*/
