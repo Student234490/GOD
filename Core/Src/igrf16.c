@@ -12,6 +12,11 @@
 #include <stdio.h>
 #define FIXED_POINT_SCALE (1 << 16)
 
+#define wgs84_f 220;
+#define wgs84_e2 439;
+#define wgs84_a 417997586 // 6378.137;
+#define wgs84_b 416596119 // wgs84_a * (1 - wgs84_f), wgs84_f = 220 # 1 / 298.257223563;
+
 
 // Convert 16.16 fixed-point to float
 static inline float fixed_to_float(int32_t x) {
@@ -23,27 +28,9 @@ static inline int32_t float_to_fixed(float x) {
     return (int32_t)(x * FIXED_POINT_SCALE);
 }
 
-// Function to calculate sine using math.h for a fixed-point input
-int32_t fixed_sin(int32_t fixed_angle) {
-    float angle_float = fixed_to_float(fixed_angle); // Convert to float
-    float sin_result = sinf(angle_float);            // Use math.h's sine
-    return float_to_fixed(sin_result);               // Convert back to fixed-point
-}
-
-// Function to calculate sine using math.h for a fixed-point input
-int32_t fixed_cos(int32_t fixed_angle) {
-    float angle_float = fixed_to_float(fixed_angle); // Convert to float
-    float sin_result = cosf(angle_float);            // Use math.h's sine
-    return float_to_fixed(sin_result);               // Convert back to fixed-point
-}
-
 #define MULT(a,b) FIX16_MULT((a),(b))
 #define POW(a,b)  FIX16_POW((a),(b))
 #define DIV(a,b)  FIX16_DIV((a),(b))
-
-// World Geodetic System 1984 (WGS84) params
-//static const int32_t wgs84_a = 417997586; // 6378.137
-//static const int32_t wgs84_b = 416596119; //wgs84_a * (1 - wgs84_f);
 
 // Decimal years since January 1, IGRF_START_YEAR
 int32_t get_years16(const igrf_time_t dt)
@@ -103,13 +90,13 @@ int igrf16(const igrf_time_t t, const int32_t latitude, const int32_t longitude,
   const int32_t theta = M16_PI_2 - MULT(latitude, D162R); // Colattitude [rad]
   const int32_t phi = MULT(longitude, D162R);            // Longitude [rad]
 
-  int32_t ct = fixed_cos(theta);
-  int32_t st = fixed_sin(theta);
-  int32_t r = altitude; // Radius
+  int32_t ct = cosrad(theta);
+  int32_t st = sinrad(theta);
+  int32_t cd, sd, r;
 
   // Geodetic to geocentric conversion
   // https://github.com/wb-bgs/m_IGRF
-  /*if (f == IGRF_GEODETIC)
+  if (f == IGRF_GEODETIC)
   {
     // Radius
     const int32_t h = altitude;
@@ -122,7 +109,11 @@ int igrf16(const igrf_time_t t, const int32_t latitude, const int32_t longitude,
     const double temp = ct;
     ct = cd * ct - sd * st;
     st = cd * st + sd * temp;
-  }*/
+  }
+  else {
+	 r = altitude;
+  }
+
 
   // Avoid singularity on pole
   const int32_t epsilon = 1;
@@ -247,6 +238,14 @@ int igrf16(const igrf_time_t t, const int32_t latitude, const int32_t longitude,
   b[0] = -bt;
   b[1] = bp;
   b[2] = -br;
+
+  // Geocentric to geodetic NED
+  if (f == IGRF_GEODETIC)
+  {
+    int32_t temp = b[0];
+    b[0] = MULT(cd, b[0]) + MULT(sd, b[2]);
+    b[2] = MULT(cd, b[2]) - MULT(sd, temp);
+  }
 
   return 1;
 }
