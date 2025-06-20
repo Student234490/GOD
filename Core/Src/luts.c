@@ -31,10 +31,6 @@ const int32_t asin_lut[1024] = { 0, 64, 128, 192, 256, 320, 384, 448, 513, 577, 
 
 extern const uint16_t sin_lut[LUTCOUNT];  // Q1.15 format
 
-static inline int32_t expand_q15(int16_t x) {
-    return ((int32_t)x) << 1;            // Convert Q1.15 → Q16.16
-}
-
 int32_t sinus(int t) {
     while (t < 0) t += SIN_FULL_CYCLE;
     t %= SIN_FULL_CYCLE;
