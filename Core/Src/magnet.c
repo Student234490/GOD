@@ -180,14 +180,3 @@ void magnet(int32_t r, int32_t theta, int32_t phi, int32_t days, int32_t buffer[
     buffer[2] = Br;
 }
 
-/*
-int32_t r = 417542963; // Earth's radius in fixed point 16.16 format
-int32_t theta = 1966139; // 30 degrees in fixed point 16.16 format
-int32_t phi = 1966080; // 30 degrees in fixed point 16.16 format
-int32_t days = 478740480; // 15 years in fixed point 16.16 format (15 * 365.25 * 24 * 3600, converted to fixed point)
-int32_t vector[3];
-magnet(r, theta, phi, days, vector);
-int i;
-for (i=0; i<3; i++) {
-	printFix(vector[i]);
-*/

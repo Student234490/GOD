@@ -79,3 +79,44 @@ int32_t abs(int32_t i) {
 		return i;
 	}
 }
+
+int64_t squareroot64(uint64_t x) {
+    /*
+     * Input: a 64-bit 48.16 fixed-point variable.
+     * Output: square root in 48.16 format.
+     */
+
+    if (x == 0) return 0;
+
+    // Scale up to 64.32 for better precision
+    uint64_t scaled_value = x << 16;
+
+    uint64_t approx = scaled_value;
+    uint64_t better_approx;
+
+    do {
+        better_approx = (approx + scaled_value / approx) / 2;
+        if (better_approx == approx) break;
+        approx = better_approx;
+    } while (1);
+
+    return approx; // Still in 48.16 format
+}
+
+int32_t hypot16(int32_t a, int32_t b) {
+    // a and b are in 16.16 fixed-point
+    int64_t a_sq = (int64_t)a * a; // 32.32 fixed-point
+    int64_t b_sq = (int64_t)b * b; // 32.32
+
+    uint64_t sum = (uint64_t)(a_sq + b_sq); // Still 32.32
+
+    // Convert from 32.32 to 48.16 by shifting down 16 bits
+    uint64_t sum_48_16 = sum >> 16;
+
+    // Square root in 48.16
+    int64_t result_48_16 = squareroot64(sum_48_16);
+
+    // Convert from 48.16 to 16.16 for return
+    return (int32_t)result_48_16;
+}
+

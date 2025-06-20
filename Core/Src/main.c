@@ -31,6 +31,8 @@
 #include "magnet.h"
 #include "gps.h"
 #include "lcd.h"
+#include "igrf16.h"
+#include "igrf.h"
 
 /* USER CODE END Includes */
 
@@ -118,29 +120,57 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
   I2C_Scan(&hi2c3);
-int32_t r = REarth16km + Rational(2,10); // Earth's radius in fixed point 16.16 format
+
+
+printf("Running 1616 \r\n");
+int32_t r = convert(6200); // Earth's radius in fixed point 16.16 format
 printf("r : ");
 printFix(r);
 printf("\r\n");
-int32_t phi = convert(30);
-int32_t theta = convert(45);
-int32_t days = 24510000;
+int32_t phi16 = convert(45);
+int32_t theta16 = convert(45);
+igrf_time_t time = {.year = 2025, .month = 4, .day = 23, .hour = 0, .minute = 0, .second = 0};
 int32_t vector[3];
-magnet(r, theta, phi, days, vector);
-int i;
-for (i=0; i<3; i++) {
+int status = igrf16(time, theta16, phi16, r, IGRF_GEOCENTRIC, vector);
+
+printf("%i", status);
+for (int i=0; i<3; i++) {
 	printf("Res %i: ", i);
 	printFix(vector[i]);
 	printf("\r\n");
 }
 
+
+printf("Running float\r\n");
+const igrf_time_t dt = {.year = 2025, .month = 04, .day = 23, 0, 0, 0};
+const double latitude = 45; // deg
+const double longitude = 45; // deg
+const double altitude = 6200.0; // km
+const double x[3] = {latitude, longitude, altitude};
+double b[3] = {0.0};
+  bool status1 = igrf(dt, x, IGRF_GEOCENTRIC, b);
+
+  if (status1)
+  {
+    printf("Inputs: \r\n");
+    printf("  Time      : %d-%d-%d, %d:%d:%d \r\n", dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
+    printf("  Latitude  : %f deg \r\n", latitude);
+    printf("  Longitude : %f deg \r\n", longitude);
+    printf("  Altitude  : %f km \r\n", altitude);
+    printf("\nOutputs: \r\n");
+    printf("  Bn          : %f nT \r\n", b[0]);
+    printf("  Be          : %f nT \r\n", b[1]);
+    printf("  Bd          : %f nT \r\n", b[2]);
+  }
+
+/*
 LCD_SetCursor(0, 0);
     LCD_SendString("Hello STM32!");
 
     LCD_SetCursor(1, 0);
     LCD_SendString("LCD is working :)");
-
-i = 0;
+*/
+int i = 0;
 
   while (1)
   {
