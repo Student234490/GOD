@@ -1,7 +1,6 @@
 "./Core/Src/fixp.o"
 "./Core/Src/gps.o"
 "./Core/Src/i2c.o"
-"./Core/Src/igrf.o"
 "./Core/Src/igrf16.o"
 "./Core/Src/lcd.o"
 "./Core/Src/lsm9ds1.o"

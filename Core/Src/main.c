@@ -32,7 +32,6 @@
 #include "gps.h"
 #include "lcd.h"
 #include "igrf16.h"
-#include "igrf.h"
 
 /* USER CODE END Includes */
 
@@ -139,29 +138,6 @@ for (int i=0; i<3; i++) {
 	printFix(vector[i]);
 	printf("\r\n");
 }
-
-
-printf("Running float\r\n");
-const igrf_time_t dt = {.year = 2025, .month = 04, .day = 23, 0, 0, 0};
-const double latitude = 45; // deg
-const double longitude = 45; // deg
-const double altitude = 6200.0; // km
-const double x[3] = {latitude, longitude, altitude};
-double b[3] = {0.0};
-  bool status1 = igrf(dt, x, IGRF_GEOCENTRIC, b);
-
-  if (status1)
-  {
-    printf("Inputs: \r\n");
-    printf("  Time      : %d-%d-%d, %d:%d:%d \r\n", dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
-    printf("  Latitude  : %f deg \r\n", latitude);
-    printf("  Longitude : %f deg \r\n", longitude);
-    printf("  Altitude  : %f km \r\n", altitude);
-    printf("\nOutputs: \r\n");
-    printf("  Bn          : %f nT \r\n", b[0]);
-    printf("  Be          : %f nT \r\n", b[1]);
-    printf("  Bd          : %f nT \r\n", b[2]);
-  }
 
 /*
 LCD_SetCursor(0, 0);
