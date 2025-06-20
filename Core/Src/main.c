@@ -177,6 +177,15 @@ Matrix3x3 rot;
 Matrix3x3 Rnb;
 Vector3D acc_avg = {0, 0, convert(1)};
 Vector3D mag_avg = {convert(1), 0, 0};
+Vector3D accdata = {0,0,0};
+
+//til at teste om sinus lut virker
+for (int t = 0; t < 1024 * 4; t += 8*4) {
+        int32_t sinval = sinus(t);
+        printf("%4d: ", t);
+        printFix(sinval);
+        printf("\n");
+    }
 
   while (1)
   {
