@@ -58,3 +58,8 @@ dkms.conf
 [Dd]ebug
 .launch
 /Debug
+Debug/Core/Src/subdir.mk
+Debug/GOD.bin
+Debug/GOD.list
+Debug/makefile
+.settings/language.settings.xml

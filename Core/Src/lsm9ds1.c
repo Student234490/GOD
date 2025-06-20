@@ -45,17 +45,6 @@ Vector3D lsmMagOut(I2C_HandleTypeDef*handle) {
 			Rational(raw.z << 1, 32768) // -2 to 2 in fixp
 	};
 
-	Matrix3x3 calA = create_matrix(
-			Rational(9785,10000), Rational(597,10000), Rational(78,10000),
-			Rational(597,10000), Rational(10562,10000), Rational(-111, 10000),
-			Rational(78,10000), Rational(-111,10000), Rational(9712,10000)
-	);
-	Vector3D calb = {
-			Rational(1110,10000),
-			Rational(-1736,10000),
-			Rational(1973, 10000),
-	};
-
 	return out;
 }
 
@@ -129,7 +118,7 @@ void readSensorsAndAverage(Vector3D* acc_avg, Vector3D* mag_avg, I2C_HandleTypeD
     Vector3D mag_raw;
     /*
     mag_raw.x =  mraw.y + 2637; //+ 2897;    +Ymag → +Xbody
-    mag_raw.y = -mraw.x + 3352;//2486.0; //+ 3352;   /* –Xmag → +Ybody
+    mag_raw.y = -mraw.x + 3352;//2486.0; //+ 3352;    –Xmag → +Ybody
     mag_raw.z =  mraw.z + 3376; //+ 3200;    Zmag →  Zbody
     */
 
