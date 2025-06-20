@@ -22,6 +22,10 @@ void LCD_SendChar(char c);
 // Sends a null-terminated string to the LCD
 void LCD_SendString(char* str);
 
+//prints int16_t on LCD
+void LCD_PrintInt(int32_t value);
+void LCD_PrintAngle(int32_t value);
+
 // Moves the cursor to a specific row and column (0-indexed)
 void LCD_SetCursor(uint8_t row, uint8_t col);
 

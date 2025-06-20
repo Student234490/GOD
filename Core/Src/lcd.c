@@ -8,6 +8,7 @@
 // lcd.c
 #include "lcd.h"
 #include "main.h"
+#include "fixp.h"
 
 #define RS_PORT GPIOA
 #define RS_PIN  GPIO_PIN_0
@@ -76,3 +77,24 @@ void LCD_Init(void) {
     LCD_SendCommand(0x01); // Clear display
     HAL_Delay(2);
 }
+
+void LCD_PrintInt(int32_t value) {
+    if (value == 0) {
+        LCD_SendString("0    ");
+        return;
+    }
+    char buffer[12];
+    sprintf(buffer, "%ld  ", (long)value);
+    LCD_SendString(buffer);
+}
+
+void LCD_PrintAngle(int32_t angle) {
+    //angle = inconvert(angle);  // Convert to integer degrees
+
+    if (angle < 0) {
+        LCD_SendChar('-');
+        angle = -angle;
+    }
+    LCD_PrintInt(angle);
+}
+

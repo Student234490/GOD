@@ -56,6 +56,10 @@ Vector3D MVMult(Matrix3x3 a, Vector3D b);
 // Utility
 void print_matrix(Matrix3x3 a);
 
+Vector3D rotateZ14(const Vector3D *v14, int32_t headingDegQ16);
+int32_t norm_q16(Vector3D a);
+
+
 
 
 #endif /* INC_VECTOR_H_ */

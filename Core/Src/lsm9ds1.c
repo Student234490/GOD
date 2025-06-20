@@ -7,6 +7,8 @@
 
 #include "lsm9ds1.h"
 #include "fixp.h"
+#include "main.h"
+#include "vector.h"
 
 void lsmCtrlReg(I2C_HandleTypeDef*handle) {
 	// Enable accelerometer: ODR = 119 Hz, ±2g, BW = 50 Hz
@@ -98,47 +100,91 @@ Vector3D lsmMagRead(I2C_HandleTypeDef*handle) {
 	return output;
 }
 
+/* --------------------------------------------------------------------------
+ *  readSensorsAndAverage() – returns the mean of the last 5 samples
+ * --------------------------------------------------------------------------*/
+#define AVG_LEN 3                 /* running-mean window length */
 
-/*
-void temprasmus() {
-	  /////////////////////////////////////////////////////// HER LAVER RASMUS KÆMPE YUM YUM //////////////////////////////////////////////////////////////////////////////////
-	  // Static arrays to store [min, max] for each axis
-	  static int16_t mag_x_minmax[2] = {INT16_MAX, INT16_MIN};
-	  static int16_t mag_y_minmax[2] = {INT16_MAX, INT16_MIN};
-	  static int16_t mag_z_minmax[2] = {INT16_MAX, INT16_MIN};
+static Vector3D acc_buf[AVG_LEN]; /* FIFO for accelerometer */
+static Vector3D mag_buf[AVG_LEN]; /* FIFO for magnetometer  */
 
-	  // Determine if new max or min for each axis
-	  int16_t CODE_X = 0;
-	  if (mag_x > mag_x_minmax[1]) {
-	      mag_x_minmax[1] = mag_x; // update max
-	      CODE_X = 10;
-	  } else if (mag_x < mag_x_minmax[0]) {
-	      mag_x_minmax[0] = mag_x; // update min
-	      CODE_X = 1;
-	  } else {
-	      CODE_X = 0;
-	  }
+static uint8_t  buf_pos    = 0;   /* write index 0…AVG_LEN-1 */
+static uint8_t  buf_filled = 0;   /* number of samples in FIFO */
 
-	  int16_t CODE_Y = 0;
-	  if (mag_y > mag_y_minmax[1]) {
-	      mag_y_minmax[1] = mag_y; // update max
-	      CODE_Y = 10;
-	  } else if (mag_y < mag_y_minmax[0]) {
-	      mag_y_minmax[0] = mag_y; // update min
-	      CODE_Y = 1;
-	  } else {
-	      CODE_Y = 0;
-	  }
+static int64_t  acc_sum_x = 0, acc_sum_y = 0, acc_sum_z = 0;
+static int64_t  mag_sum_x = 0, mag_sum_y = 0, mag_sum_z = 0;
 
-	  int16_t CODE_Z = 0;
-	  if (mag_z > mag_z_minmax[1]) {
-	      mag_z_minmax[1] = mag_z; // update max
-	      CODE_Z = 10;
-	  } else if (mag_z < mag_z_minmax[0]) {
-	      mag_z_minmax[0] = mag_z; // update min
-	      CODE_Z = 1;
-	  } else {
-	      CODE_Z = 0;
-	  }
+void readSensorsAndAverage(Vector3D* acc_avg, Vector3D* mag_avg, I2C_HandleTypeDef hi2c3)
+{
+	Matrix3x3 softIron = create_matrix(
+			57855,   6259, -1016,     /* row 0 */
+			6259,    73662, 813,     /* row 1 */
+			-1016,   813, 66696      /* row 2 */
+	);
+    /* 1. fresh raw sensor counts --------------------------------------- */
+    Vector3D acc_raw = lsmAccRead(&hi2c3);     /* ±16 384 cnt ≈ 1 g   */
+    Vector3D mraw    = lsmMagRead(&hi2c3);     /* ±32 768 cnt        */
+
+    /* 2. axis-remap + hard-iron offsets (still in raw counts) ---------- */
+    Vector3D mag_raw;
+    /*
+    mag_raw.x =  mraw.y + 2637; //+ 2897;    +Ymag → +Xbody
+    mag_raw.y = -mraw.x + 3352;//2486.0; //+ 3352;   /* –Xmag → +Ybody
+    mag_raw.z =  mraw.z + 3376; //+ 3200;    Zmag →  Zbody
+    */
+
+	mag_raw.x =  convert(mraw.x) - convert(2832 + 54); //+ 2897;   /* +Ymag → +Xbody */
+    mag_raw.y =  convert(mraw.y) + convert(3259 - 192); //2486.0; //+ 3352;   /* –Xmag → +Ybody */
+	mag_raw.z =  convert(mraw.z) + convert(4243 - 80); //+ 3200;   /*  Zmag →  Zbody */
+
+	mag_raw = MVMult(softIron, mag_raw);
+
+	/* 5. push *m_soft* into the FIFO instead of the raw reading ----------- */
+
+    acc_raw.x = acc_raw.x + 376;
+    acc_raw.y = acc_raw.y + 282 + 133;
+    acc_raw.z = acc_raw.z - 738;
+
+    /* 3. promote to Q16.16  (raw × 4  ==  << 2) ------------------------ */
+    Vector3D acc_q16 = { acc_raw.x,
+                         acc_raw.y,
+                         acc_raw.z};
+
+    Vector3D mag_q16 = { mag_raw.x>>16,
+                         mag_raw.y>>16,
+                         mag_raw.z>>16};
+
+    /* 4. drop oldest sample if FIFO full ------------------------------ */
+    if (buf_filled == AVG_LEN) {
+        acc_sum_x -= acc_buf[buf_pos].x;
+        acc_sum_y -= acc_buf[buf_pos].y;
+        acc_sum_z -= acc_buf[buf_pos].z;
+
+        mag_sum_x -= mag_buf[buf_pos].x;
+        mag_sum_y -= mag_buf[buf_pos].y;
+        mag_sum_z -= mag_buf[buf_pos].z;
+    }
+
+    /* 5. store new sample & update sums -------------------------------- */
+    acc_buf[buf_pos] = acc_q16;
+    mag_buf[buf_pos] = mag_q16;
+
+    acc_sum_x += acc_q16.x;  acc_sum_y += acc_q16.y;  acc_sum_z += acc_q16.z;
+    mag_sum_x += mag_q16.x;  mag_sum_y += mag_q16.y;  mag_sum_z += mag_q16.z;
+
+    /* 6. advance circular index --------------------------------------- */
+    buf_pos = (buf_pos + 1) % AVG_LEN;
+    if (buf_filled < AVG_LEN) buf_filled++;
+
+    /* 7. return running mean ------------------------------------------ */
+    int32_t div = buf_filled;           /* 1 … 5 */
+
+    acc_avg->x = (int32_t)(acc_sum_x / div);
+    acc_avg->y = (int32_t)(acc_sum_y / div);
+    acc_avg->z = (int32_t)(acc_sum_z / div);
+
+    mag_avg->x = (int32_t)(mag_sum_x / div);
+    mag_avg->y = (int32_t)(mag_sum_y / div);
+    mag_avg->z = (int32_t)(mag_sum_z / div);
 }
-*/
+

@@ -30,6 +30,8 @@
 #include "vector.h"
 #include "gps.h"
 #include "lcd.h"
+#include "triad.h"
+#include <inttypes.h>
 #include "igrf16.h"
 
 /* USER CODE END Includes */
@@ -80,6 +82,10 @@ RingBuffer uart_rx_buf = { .head = 0, .tail = 0 }; // stores every rx_buffer in 
   * @brief  The application entry point.
   * @retval int
   */
+
+
+
+
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -118,6 +124,7 @@ int main(void)
   // lcd setup
   LCD_Init();
 
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -145,26 +152,114 @@ for (int i=0; i<3; i++) {
 }
 
 /*
-LCD_SetCursor(0, 0);
-    LCD_SendString("Hello STM32!");
-
-    LCD_SetCursor(1, 0);
-    LCD_SendString("LCD is working :)");
+Vector3D M2 = {     -(convert(100)>>5),  // North
+	    			-(convert(3)>>5),    // East
+					-(convert(166)>>5)}; //down
 */
-int i = 0;
+
+//rigtig igrf fra NOAA, gør at lortet virker, 1/4 nT er enheden
+Vector3D M2 = {     (17056<<14),  // North
+					-(1464<<14),    // East
+  					-(47628<<14)}; //down
+
+/*
+Vector3D M2 = {     (vector[0]>>8),  // North
+					(vector[1]>>8),    // East
+  					-(vector[2]>>8)}; //down
+*/
+Vector3D g2 = { 0, 0, 17000};
+
+//her kan man rotere en matrix, dvs input forskel fra geografisk nord
+//M2 = rotateZ14(&M2, convert(90));
+//g2 = rotateZ14(&g2, convert(90));
+
+	LCD_SetCursor(0, 0);
+    LCD_SendString("Roll");
+    LCD_SetCursor(0, 6);
+    LCD_SendString("Pitch");
+    LCD_SetCursor(0, 12);
+    LCD_SendString("Yaw");
+
+i = 0;
+Vector3D degrot;
+Matrix3x3 rot;
+Matrix3x3 Rnb;
+Vector3D acc_avg = {0, 0, convert(1)};
+Vector3D mag_avg = {convert(1), 0, 0};
+Vector3D accdata = {0,0,0};
+
+//til at teste om sinus lut virker
+printFix(sinrad(205887>>1));
+printf("\n");
+printFix(cosrad(205887>>1));
+printf("\n");
 
   while (1)
   {
-	  process_uart_data(&uart_rx_buf, &GPS);
-	  HAL_Delay(10);
+	  accdata = lsmAccRead(&hi2c3);
+
+	  //printf("\n acc: %ld, %ld, %ld \n",accdata.x,accdata.y, accdata.z);
+	  //printf("mag: %ld, %ld, %ld \n",magdata.x,magdata.y, magdata.z);
+
+
+	  readSensorsAndAverage(&acc_avg, &mag_avg, hi2c3);
+	  triad(mag_avg,acc_avg,M2,g2, &rot);
+	  Rnb = transpose(rot);
+	  rot2eulerZYX(&Rnb,&degrot);
+	  //printf("\n %ld, %ld, %ld \n",degrot.x, degrot.y, degrot.z);
+
+	  //printf("%ld,%ld,%ld\n", (long)mag_avg.x, (long)mag_avg.y, (long)mag_avg.z);
+	  //printf("%ld,%ld,%ld\n", acc_avg.x, acc_avg.y, acc_avg.z);
+
+	  //HAL_Delay(5);
+
+	  //////////////////////////////////LCD deg print//////////////////
+	  LCD_SetCursor(1, 0);
+	  LCD_PrintAngle(inconvert(degrot.x));
+	  HAL_Delay(5); //vigtigt der skal være delay ellers virker det ikke at rykke cursor
+
+	  LCD_SetCursor(1, 6);
+	  LCD_PrintAngle(inconvert(degrot.y));
+	  HAL_Delay(5);
+
+	  LCD_SetCursor(1, 12);
+	  LCD_PrintAngle(inconvert(degrot.z));
+	  HAL_Delay(5);
+	  //////////////////////////////////LCD deg print end//////////////
+	  static int32_t max_x = INT32_MIN, max_y = INT32_MIN, max_z = INT32_MIN;
+	  static int32_t min_x = INT32_MAX, min_y = INT32_MAX, min_z = INT32_MAX;
+
+	  /* bit1 = new-max, bit0 = new-min  -> 00 / 01 / 10 / 11 */
+	  uint8_t fx = 0, fy = 0, fz = 0;
+
+	  if (mag_avg.x > max_x) { max_x = mag_avg.x; fx |= 0b10; }
+	  if (mag_avg.x < min_x) { min_x = mag_avg.x; fx |= 0b01; }
+
+	  if (mag_avg.y > max_y) { max_y = mag_avg.y; fy |= 0b10; }
+	  if (mag_avg.y < min_y) { min_y = mag_avg.y; fy |= 0b01; }
+
+	  if (mag_avg.z > max_z) { max_z = mag_avg.z; fz |= 0b10; }
+	  if (mag_avg.z < min_z) { min_z = mag_avg.z; fz |= 0b01; }
+
+	  /* printable strings for each 2-bit flag value */
+	  static const char* const flag_txt[4] = {"00","01","10","11"};
+
+	  /* -------------- CSV log line ----------------------------------------- */
+	  printf("%ld,%ld,%ld,%s,%s,%s\r\n",
+	         (long)mag_avg.x, (long)mag_avg.y, (long)mag_avg.z,
+	         flag_txt[fx], flag_txt[fy], flag_txt[fz]);
+
+	  //process_uart_data(&uart_rx_buf, &GPS);
+	  //HAL_Delay(5);
 	  i++;
-	  	  if (!(i % 1000)) {
-	  		  i = 0;
-	  		  printGPS(GPS);
+	  	  //if (!(i % 1000)) {
+	  		  //i = 0;
+	  		  //printGPS(GPS);
 	  		  //printVector(lsmMagRead(&hi2c3));
 	  		  //printf("\r\n");
-	  	  }
+	  	  //}
 	}
+
 	/*
 	printFixVector(lsmMagOut(&hi2c3));
 	printf("\r\n");
@@ -437,6 +532,8 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
+
+
 
 #ifdef  USE_FULL_ASSERT
 /**
