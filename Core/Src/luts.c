@@ -58,11 +58,11 @@ int32_t cosinus(int t) {
 }
                        // :contentReference[oaicite:0]{index=0}
 
-int32_t sinrad(int32_t t) {
-    // Map t ∈ [0, 2π) to [0, LUTCOUNT)
-    int32_t factor = FIX16_DIV(convert(LUTCOUNT), FIX16_MULT(convert(2), PI16));  // LUTCOUNT / (2π)
-    int integer = (int)(inconvert(FIX16_MULT(t, factor)));  // Convert to 32.0 index
-    return sinus(integer);
+int32_t sinrad(int32_t t) { // takes int32 16.16 corresponding to radians
+	int32_t factor = FIX16_DIV(convert(LUTCOUNT * 4),FIX16_MULT(convert(2),PI16)); // N/2pi
+	int integer = (int)(inconvert((FIX16_MULT(t, factor)))); // 32.0 degree
+	//printf("%i,", integer);
+	return sinus(integer); // returns 16.16 decimal
 }
 
 int32_t cosrad(int32_t t) {
