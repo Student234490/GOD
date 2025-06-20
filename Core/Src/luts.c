@@ -53,8 +53,8 @@ int32_t sinus(int t) {
 
 
 
-int32_t cosinus(int t) {
-    return sinus((t + LUTCOUNT / 4) % LUTCOUNT); // phase shift by 90°
+int32_t cosinus(int t) { //tror den er forkert
+    return sinus((t + SIN_FULL_CYCLE / 4) % SIN_FULL_CYCLE); // phase shift by 90°
 }
                        // :contentReference[oaicite:0]{index=0}
 
@@ -65,8 +65,8 @@ int32_t sinrad(int32_t t) { // takes int32 16.16 corresponding to radians
 	return sinus(integer); // returns 16.16 decimal
 }
 
-int32_t cosrad(int32_t t) {
-    int32_t factor = FIX16_DIV(convert(LUTCOUNT), FIX16_MULT(convert(2), PI16));
+int32_t cosrad(int32_t t) { // kan være den er cooked
+    int32_t factor = FIX16_DIV(convert(SIN_FULL_CYCLE), FIX16_MULT(convert(2), PI16));
     int integer = (int)(inconvert(FIX16_MULT(t, factor)));
     return cosinus(integer);
 }
