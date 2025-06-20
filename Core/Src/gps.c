@@ -23,32 +23,6 @@ void RingBuffer_Write(RingBuffer *rb, uint8_t byte) {
     }
 }
 
-int32_t bredconv(char* string) {
-	/*
-	 * DEPRECATED FUNCTION
-	 * Input1: A string containing a latitude (breddegrad) format DDmm.mmmm
-	 * Output: 8.24 decimal degrees latitude
-	 */
-	printf("  :%s:  ", string);
-	int64_t powten[7] = {1, 10, 100, 1000, 10000, 100000, 1000000};
-	int32_t degrees = 0;
-	int i;
-	for (i = 0; i <= 1; i++) {
-		degrees += ((string[i] - ASCII0) * powten[1-i]);
-	}
-	degrees = degrees << 24;
-	int64_t raw_minutes = 0;
-	int k = 0;
-	for (i = 0; i <= 6; i++) {
-	    if (i == 2) k++;  // skip point character
-	    raw_minutes += (string[2 + k] - ASCII0) * powten[5 - i];
-	    k++;
-	}
-
-	int32_t minutes = (raw_minutes << 24 / powten[6]);
-	return degrees + minutes;
-}
-
 int32_t convert_DDmm_mmmm_to_fixed(char* str) {
 	printf("   input=%s    ", str);
     // Parse degrees (first two digits)
