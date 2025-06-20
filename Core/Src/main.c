@@ -190,6 +190,9 @@ Vector3D accdata = {0,0,0};
 
 //til at teste om sinus lut virker
 printFix(sinrad(205887>>1));
+printf("\n");
+printFix(cosrad(205887>>1));
+printf("\n");
 
   while (1)
   {
