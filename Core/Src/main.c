@@ -153,8 +153,6 @@ Vector3D M2 = {     (17056<<14),  // North
 					-(1464<<14),    // East
   					-(47628<<14)}; //down
 
-M2 = rotateZ14(&M2, convert(90));
-
 /*
 Vector3D M2 = {     (vector[0]>>8),  // North
 					(vector[1]>>8),    // East
@@ -162,7 +160,9 @@ Vector3D M2 = {     (vector[0]>>8),  // North
 */
 Vector3D g2 = { 0, 0, 17000};
 
-
+//her kan man rotere en matrix, dvs input forskel fra geografisk nord
+//M2 = rotateZ14(&M2, convert(90));
+//g2 = rotateZ14(&g2, convert(90));
 
 	LCD_SetCursor(0, 0);
     LCD_SendString("Roll");
@@ -172,14 +172,9 @@ Vector3D g2 = { 0, 0, 17000};
     LCD_SendString("Yaw");
 
 i = 0;
-//Vector3D magdata;
-//Vector3D accdata;
 Vector3D degrot;
 Matrix3x3 rot;
-Vector3D accdata = {0, 0, convert(1)}; // gravity straight down
-Vector3D magdata = {convert(1), 0, 0};  // magnetic north along X
 Matrix3x3 Rnb;
-Vector3D mag_raw;
 Vector3D acc_avg = {0, 0, convert(1)};
 Vector3D mag_avg = {convert(1), 0, 0};
 

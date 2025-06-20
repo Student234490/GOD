@@ -142,7 +142,7 @@ void readSensorsAndAverage(Vector3D* acc_avg, Vector3D* mag_avg, I2C_HandleTypeD
 	/* 5. push *m_soft* into the FIFO instead of the raw reading ----------- */
 
     acc_raw.x = acc_raw.x + 376;
-    acc_raw.y = acc_raw.y + 282;
+    acc_raw.y = acc_raw.y + 282 + 133;
     acc_raw.z = acc_raw.z - 738;
 
     /* 3. promote to Q16.16  (raw × 4  ==  << 2) ------------------------ */

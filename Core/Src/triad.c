@@ -68,6 +68,7 @@ void triad(Vector3D B1, Vector3D g1, Vector3D B2, Vector3D g2, Matrix3x3* result
 	*result = C;
 }
 //////////////////////////fuld yap skal lave en LUT
+/*
 int32_t fix_asin(int32_t x) {
     // Clamp x to [-1, 1]
     if (x < -convert(1)) x = -convert(1);
@@ -105,87 +106,59 @@ int32_t fix_atan2(int32_t y, int32_t x) {
 
     return 0;
 }
+*/
 //////////////////////////////////////////////////////////////
-#define Q16_SHIFT   16
-#define Q16_ONE     (1 << Q16_SHIFT)
 
-/*----- helpers: float ⟷ Q16.16 ----------------------------------------*/
-int32_t q16_from_float(float f)
-{
-    return (int32_t)(f * (float)Q16_ONE + (f >= 0 ? 0.5f : -0.5f));
-}
-static inline float q16_to_float(int32_t q)
-{
-    return (float)q / (float)Q16_ONE;
-}
-
-/*----- reference asin:  returns radians in Q16.16 ----------------------*/
-int32_t asin16(int32_t x_q16)
-{
-    float xf = q16_to_float(x_q16);          /*  -1 … +1                  */
-    float rf = asinf(xf);                    /*  radians                  */
-    return q16_from_float(rf);               /*  back to Q16.16           */
-}
-
-/*----- reference atan2:  returns radians in Q16.16 ---------------------*/
-int32_t atan2_16(int32_t y_q16, int32_t x_q16)
-{
-    float yf = q16_to_float(y_q16);
-    float xf = q16_to_float(x_q16);
-    float rf = atan2f(yf, xf);               /*  radians                  */
-    return q16_from_float(rf);
-}
 
 // In triad.c
 void rot2eulerZYX(const Matrix3x3* R, Vector3D* angles) {
-    // 1. Correct pitch calculation (remove negation)
     int32_t rzx = R->z.x;
 
-    // 2. Proper clamping
-    rzx = (rzx < convert(-1)) ? convert(-1) : (rzx > convert(1)) ? convert(1) : rzx;
+    // Clamp R->z.x to [-1, 1] range for asin
+    if (rzx < convert(-1)) rzx = convert(-1);
+    if (rzx > convert(1))  rzx = convert(1);
 
-    // 3. Use LUT-based asin for accuracy
-    int32_t pitch_rad = -asin16(rzx);
-
+    // Pitch = -asin(R->z.x)
+    int32_t pitch_rad = -fix_asin(rzx);  // <-- uses your LUT
     int32_t cos_pitch = cosrad(pitch_rad);
+
     int32_t rad2deg = FIX16_DIV(convert(180), PI16);
     int32_t pitch_deg = FIX16_MULT(pitch_rad, rad2deg);
 
     int32_t roll_deg = 0;
     int32_t yaw_deg = 0;
 
-    // 4. Optimized gimbal lock detection
-    #define GIMBAL_THRESHOLD 30  // 0.001 in 16.16 (1 << 16)/1000 ≈ 65
+    // Gimbal lock threshold (approx. 0.001 in Q16.16)
+    #define GIMBAL_THRESHOLD 30
+
     if (abs(cos_pitch) > GIMBAL_THRESHOLD) {
-        // 5. Use LUT-based atan2 with corrected arguments
-        int32_t roll_rad = atan2_16(R->z.y, R->z.z);  // Standard ZYX formula
-        int32_t yaw_rad = atan2_16(R->y.x, R->x.x);   // Standard ZYX formula
+        // No gimbal lock
+        int32_t roll_rad = fix_atan2(R->z.y, R->z.z);  // <-- uses your LUT
+        int32_t yaw_rad  = fix_atan2(R->y.x, R->x.x);  // <-- uses your LUT
 
         roll_deg = FIX16_MULT(roll_rad, rad2deg);
-        yaw_deg = FIX16_MULT(yaw_rad, rad2deg);
+        yaw_deg  = FIX16_MULT(yaw_rad,  rad2deg);
     } else {
-        // 6. Correct gimbal lock handling
-        int32_t yaw_rad = atan2_16(-R->x.y, R->y.y);
+        // Gimbal lock fallback
+        int32_t yaw_rad = fix_atan2(-R->x.y, R->y.y);  // <-- uses your LUT
         yaw_deg = FIX16_MULT(yaw_rad, rad2deg);
-        // Set roll to 0 during gimbal lock (standard approach)
         roll_deg = 0;
     }
 
-    // 7. Efficient angle wrapping
+    // Wrap to [-180°, 180°]
     #define ANGLE_180 (180 << 16)
     #define ANGLE_360 (360 << 16)
 
     roll_deg %= ANGLE_360;
-    roll_deg = (roll_deg > ANGLE_180) ? roll_deg - ANGLE_360 :
-              (roll_deg < -ANGLE_180) ? roll_deg + ANGLE_360 : roll_deg;
+    if (roll_deg > ANGLE_180) roll_deg -= ANGLE_360;
+    if (roll_deg < -ANGLE_180) roll_deg += ANGLE_360;
 
     yaw_deg %= ANGLE_360;
-    yaw_deg = (yaw_deg > ANGLE_180) ? yaw_deg - ANGLE_360 :
-             (yaw_deg < -ANGLE_180) ? yaw_deg + ANGLE_360 : yaw_deg;
+    if (yaw_deg > ANGLE_180) yaw_deg -= ANGLE_360;
+    if (yaw_deg < -ANGLE_180) yaw_deg += ANGLE_360;
 
     angles->x = roll_deg;
     angles->y = pitch_deg;
     angles->z = yaw_deg;
-
 }
 
