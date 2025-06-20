@@ -31,8 +31,8 @@
 #include "gps.h"
 #include "lcd.h"
 #include "triad.h"
-#include <inttypes.h>
 #include "igrf16.h"
+#include "luts.h"
 
 /* USER CODE END Includes */
 
@@ -43,8 +43,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define REarth16km 417542963
 
+#define USEROTATE 0
+#define USECALIBRATION 0
+#define USEGPSPRINT 0
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -74,18 +76,22 @@ static void MX_I2C3_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t rx_buffer[1]; // stores the data from every interrupt
-RingBuffer uart_rx_buf = { .head = 0, .tail = 0 }; // stores every rx_buffer in a ring buffer, see interrupt function
+
+/**
+ *  @brief Denne bruges til at modtage data fra GPS'en.
+ */
+uint8_t rx_buffer[1] = {0};
+
+/*
+ * @brief Denne har alle uart signalerne samlet i en buffer.
+ */
+RingBuffer uart_rx_buf = { .buffer = {0}, .head = 0, .tail = 0 }; // stores every rx_buffer in a ring buffer, see interrupt function
 /* USER CODE END 0 */
 
 /**
   * @brief  The application entry point.
   * @retval int
   */
-
-
-
-
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -113,162 +119,121 @@ int main(void)
   MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
 
-  // lsm setup
+  /**
+   * @brief Starter LSM9DS1-chippen vha. registrene, der er i librariet.
+   */
   lsmCtrlReg(&hi2c3);
 
-  // gps setup
-  GPSRead_t GPS = {0,0,0,0};
-  HAL_Delay(10);
-  HAL_UART_Receive_IT(&huart1, rx_buffer, 1);
+  /*
+   * @brief Starter GPS og UART1-interrupt, samt lidt logik for at sikre, at GPS'en starter op.
+   */
+	GPSRead_t GPS = {0,0,0,0};
+	HAL_UART_Receive_IT(&huart1, rx_buffer, 1);
+	HAL_Delay(100);
+	while (!process_uart_data(&uart_rx_buf, &GPS)) {
+	  printf("Error Not receiving UART data! \r\n");
+	  printf("Log  Waiting");
+	  for (int l = 0; l < 25; l++) {
+		  HAL_Delay(40);
+		  printf(".");
+	  }
+	  printf(" Retrying. \r\n");
+	  HAL_UART_Receive_IT(&huart1, rx_buffer, 1);
+	}
 
-  // lcd setup
+	/**
+	 * @brief LCD initialisering.
+	 */
   LCD_Init();
-
-
+  LCD_SetCursor(0, 0);
+  LCD_SendString("Roll");
+  LCD_SetCursor(0, 6);
+  LCD_SendString("Pitch");
+  LCD_SetCursor(0, 12);
+  LCD_SendString("Yaw");
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  I2C_Scan(&hi2c3);
-
-
-printf("Running 1616 \r\n");
-int32_t r = convert(6200); // Earth's radius in fixed point 16.16 format
-printf("r : ");
-printFix(r);
-printf("\r\n");
-int32_t phi16 = convert(45);
-int32_t theta16 = convert(45);
-igrf_time_t time = {.year = 2025, .month = 4, .day = 23, .hour = 0, .minute = 0, .second = 0};
-int32_t vector[3];
-int status = igrf16(time, theta16, phi16, r, IGRF_GEOCENTRIC, vector);
-
-printf("%i", status);
-for (int i=0; i<3; i++) {
-	printf("Res %i: ", i);
-	printFix(vector[i]);
-	printf("\r\n");
-}
-
-/*
-Vector3D M2 = {     -(convert(100)>>5),  // North
-	    			-(convert(3)>>5),    // East
-					-(convert(166)>>5)}; //down
-*/
-
-//rigtig igrf fra NOAA, gør at lortet virker, 1/4 nT er enheden
+  /**
+   * @brief Prototype NOAA værdier for Lyngby.
+   * Enhed: 16.16 tal, i Ladegaard (dvs. <<16 og så >>2)
+   */
 Vector3D M2 = {     (17056<<14),  // North
 					-(1464<<14),    // East
-  					-(47628<<14)}; //down
-
+  					-(47628<<14)}; // Down
 /*
-Vector3D M2 = {     (vector[0]>>8),  // North
-					(vector[1]>>8),    // East
-  					-(vector[2]>>8)}; //down
-*/
+ * @brief Prototype magnetometer værdier.
+ */
 Vector3D g2 = { 0, 0, 17000};
 
-//her kan man rotere en matrix, dvs input forskel fra geografisk nord
-//M2 = rotateZ14(&M2, convert(90));
-//g2 = rotateZ14(&g2, convert(90));
+/**
+ * @brief Kan tilføjes, så man kan rotere til den ønskede orientering.
+ */
+if (USEROTATE) {
+	M2 = rotateZ14(&M2, convert(90));
+	g2 = rotateZ14(&g2, convert(90));
+}
 
-	LCD_SetCursor(0, 0);
-    LCD_SendString("Roll");
-    LCD_SetCursor(0, 6);
-    LCD_SendString("Pitch");
-    LCD_SetCursor(0, 12);
-    LCD_SendString("Yaw");
-
-i = 0;
-Vector3D degrot;
-Matrix3x3 rot;
-Matrix3x3 Rnb;
+int printIndex = 0;
+Vector3D LCDRotation;
+Matrix3x3 RotationMatrix;
+Matrix3x3 RotationMatrixT;
 Vector3D acc_avg = {0, 0, convert(1)};
 Vector3D mag_avg = {convert(1), 0, 0};
-Vector3D accdata = {0,0,0};
-
-//til at teste om sinus lut virker
-printFix(sinrad(205887>>1));
-printf("\n");
-printFix(cosrad(205887>>1));
-printf("\n");
 
   while (1)
-  {
-	  accdata = lsmAccRead(&hi2c3);
-
-	  //printf("\n acc: %ld, %ld, %ld \n",accdata.x,accdata.y, accdata.z);
-	  //printf("mag: %ld, %ld, %ld \n",magdata.x,magdata.y, magdata.z);
-
-
+  { // Begynd while loop
+	  // Læs værdierne fra magnetometeret
 	  readSensorsAndAverage(&acc_avg, &mag_avg, hi2c3);
-	  triad(mag_avg,acc_avg,M2,g2, &rot);
-	  Rnb = transpose(rot);
-	  rot2eulerZYX(&Rnb,&degrot);
-	  //printf("\n %ld, %ld, %ld \n",degrot.x, degrot.y, degrot.z);
 
-	  //printf("%ld,%ld,%ld\n", (long)mag_avg.x, (long)mag_avg.y, (long)mag_avg.z);
-	  //printf("%ld,%ld,%ld\n", acc_avg.x, acc_avg.y, acc_avg.z);
+	  // Beregn TRIAD rotationsmatrice på RotationMatrix
+	  triad(mag_avg,acc_avg,M2,g2, &RotationMatrix);
 
-	  //HAL_Delay(5);
+	  // Beregn Euler vinkler fra rotationsmatrice
+	  RotationMatrixT = transpose(RotationMatrix);
+	  rot2eulerZYX(&RotationMatrixT,&LCDRotation);
 
-	  //////////////////////////////////LCD deg print//////////////////
-	  LCD_SetCursor(1, 0);
-	  LCD_PrintAngle(inconvert(degrot.x));
-	  HAL_Delay(5); //vigtigt der skal være delay ellers virker det ikke at rykke cursor
+	  // Print den resulterende orienterings-vektor til LCD'et
+	  LCD_PrintVector(LCDRotation);
 
-	  LCD_SetCursor(1, 6);
-	  LCD_PrintAngle(inconvert(degrot.y));
-	  HAL_Delay(5);
+	  /*
+	   * Kalibreringstilstand, kan aktiveres.
+	   */
+	  if (USECALIBRATION) {
+		  static int32_t max_x = INT32_MIN, max_y = INT32_MIN, max_z = INT32_MIN;
+		  static int32_t min_x = INT32_MAX, min_y = INT32_MAX, min_z = INT32_MAX;
 
-	  LCD_SetCursor(1, 12);
-	  LCD_PrintAngle(inconvert(degrot.z));
-	  HAL_Delay(5);
-	  //////////////////////////////////LCD deg print end//////////////
-	  static int32_t max_x = INT32_MIN, max_y = INT32_MIN, max_z = INT32_MIN;
-	  static int32_t min_x = INT32_MAX, min_y = INT32_MAX, min_z = INT32_MAX;
+		  /* bit1 = new-max, bit0 = new-min  -> 00 / 01 / 10 / 11 */
+		  uint8_t fx = 0, fy = 0, fz = 0;
 
-	  /* bit1 = new-max, bit0 = new-min  -> 00 / 01 / 10 / 11 */
-	  uint8_t fx = 0, fy = 0, fz = 0;
+		  if (mag_avg.x > max_x) { max_x = mag_avg.x; fx |= 0b10; }
+		  if (mag_avg.x < min_x) { min_x = mag_avg.x; fx |= 0b01; }
 
-	  if (mag_avg.x > max_x) { max_x = mag_avg.x; fx |= 0b10; }
-	  if (mag_avg.x < min_x) { min_x = mag_avg.x; fx |= 0b01; }
+		  if (mag_avg.y > max_y) { max_y = mag_avg.y; fy |= 0b10; }
+		  if (mag_avg.y < min_y) { min_y = mag_avg.y; fy |= 0b01; }
 
-	  if (mag_avg.y > max_y) { max_y = mag_avg.y; fy |= 0b10; }
-	  if (mag_avg.y < min_y) { min_y = mag_avg.y; fy |= 0b01; }
+		  if (mag_avg.z > max_z) { max_z = mag_avg.z; fz |= 0b10; }
+		  if (mag_avg.z < min_z) { min_z = mag_avg.z; fz |= 0b01; }
+	  }
 
-	  if (mag_avg.z > max_z) { max_z = mag_avg.z; fz |= 0b10; }
-	  if (mag_avg.z < min_z) { min_z = mag_avg.z; fz |= 0b01; }
-
-	  /* printable strings for each 2-bit flag value */
-	  static const char* const flag_txt[4] = {"00","01","10","11"};
-
-	  /* -------------- CSV log line ----------------------------------------- */
-	  printf("%ld,%ld,%ld,%s,%s,%s\r\n",
-	         (long)mag_avg.x, (long)mag_avg.y, (long)mag_avg.z,
-	         flag_txt[fx], flag_txt[fy], flag_txt[fz]);
-
-	  //process_uart_data(&uart_rx_buf, &GPS);
-	  //HAL_Delay(5);
-	  i++;
-	  	  //if (!(i % 1000)) {
-	  		  //i = 0;
-	  		  //printGPS(GPS);
-	  		  //printVector(lsmMagRead(&hi2c3));
-	  		  //printf("\r\n");
-	  	  //}
-	}
-
-	/*
-	printFixVector(lsmMagOut(&hi2c3));
-	printf("\r\n");
-	printVector(lsmMagRead(&hi2c3));
-	printf("\r\n");
-	*/
+	  /*
+	   *  GPS logik.
+	   */
+	  process_uart_data(&uart_rx_buf, &GPS);
+	  if (USEGPSPRINT) {
+		  printIndex++;
+	  	  if (!(printIndex % 100)) {
+	  		  printIndex = 0;
+	  		  printGPS(GPS);
+	  		  printf("\r\n");
+	  	  }
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+  } // Afslut while loop
   /* USER CODE END 3 */
 }
 
@@ -492,13 +457,8 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-//
-// code for setting printf to uart
-//
-extern UART_HandleTypeDef huart2;
-
 /**
- * @brief This is necessary to write to the USB port with Putty
+ * @brief This is necessary to write to the USB port with Putty.
  */
 
 int _write(int file, char *data, int len)
@@ -507,12 +467,14 @@ int _write(int file, char *data, int len)
     return len;
 }
 
+/**
+ *  Dette indstiller huart1 (GPS) som ringbuffer interrupt handler.
+ */
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart == &huart1) {
-		//printf("UART Error: ISR=0x%08lX, SR=0x%08lX\r\n", huart->Instance->ISR, huart->Instance->RQR);
-		 RingBuffer_Write(&uart_rx_buf, rx_buffer[0]);
-		 HAL_UART_Receive_IT(&huart1, rx_buffer, 1);  // Re-arm
-		 //printf("RX: %c (0x%02X)\r\n", rx_buffer[0], rx_buffer[0]);
+		RingBuffer_Write(&uart_rx_buf, rx_buffer[0]);
+		HAL_UART_Receive_IT(&huart1, rx_buffer, 1);  // Re-arm interrupt
 	}
 }
 
@@ -532,8 +494,6 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-
-
 
 #ifdef  USE_FULL_ASSERT
 /**

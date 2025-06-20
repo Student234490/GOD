@@ -9,6 +9,7 @@
 #define INC_LCD_H_
 
 #include "stm32g4xx_hal.h"
+#include "vector.h"
 
 // Initializes the LCD module
 void LCD_Init(void);
@@ -25,6 +26,9 @@ void LCD_SendString(char* str);
 //prints int16_t on LCD
 void LCD_PrintInt(int32_t value);
 void LCD_PrintAngle(int32_t value);
+
+// prints vector in specific place on LCD
+void LCD_PrintVector(Vector3D InputVector);
 
 // Moves the cursor to a specific row and column (0-indexed)
 void LCD_SetCursor(uint8_t row, uint8_t col);
