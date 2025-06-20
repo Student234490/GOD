@@ -28,9 +28,9 @@
 #include "i2c.h"
 #include "lsm9ds1.h"
 #include "vector.h"
-#include "magnet.h"
 #include "gps.h"
 #include "lcd.h"
+#include "igrf16.h"
 
 /* USER CODE END Includes */
 
@@ -106,10 +106,16 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
+
+  // lsm setup
   lsmCtrlReg(&hi2c3);
+
+  // gps setup
   GPSRead_t GPS = {0,0,0,0};
   HAL_Delay(10);
   HAL_UART_Receive_IT(&huart1, rx_buffer, 1);
+
+  // lcd setup
   LCD_Init();
 
   /* USER CODE END 2 */
@@ -118,29 +124,34 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
   I2C_Scan(&hi2c3);
-int32_t r = REarth16km + Rational(2,10); // Earth's radius in fixed point 16.16 format
+
+
+printf("Running 1616 \r\n");
+int32_t r = convert(6200); // Earth's radius in fixed point 16.16 format
 printf("r : ");
 printFix(r);
 printf("\r\n");
-int32_t phi = convert(30);
-int32_t theta = convert(45);
-int32_t days = 24510000;
+int32_t phi16 = convert(45);
+int32_t theta16 = convert(45);
+igrf_time_t time = {.year = 2025, .month = 4, .day = 23, .hour = 0, .minute = 0, .second = 0};
 int32_t vector[3];
-magnet(r, theta, phi, days, vector);
-int i;
-for (i=0; i<3; i++) {
+int status = igrf16(time, theta16, phi16, r, IGRF_GEOCENTRIC, vector);
+
+printf("%i", status);
+for (int i=0; i<3; i++) {
 	printf("Res %i: ", i);
 	printFix(vector[i]);
 	printf("\r\n");
 }
 
+/*
 LCD_SetCursor(0, 0);
     LCD_SendString("Hello STM32!");
 
     LCD_SetCursor(1, 0);
     LCD_SendString("LCD is working :)");
-
-i = 0;
+*/
+int i = 0;
 
   while (1)
   {
