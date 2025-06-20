@@ -28,7 +28,6 @@
 #include "i2c.h"
 #include "lsm9ds1.h"
 #include "vector.h"
-#include "magnet.h"
 #include "gps.h"
 #include "lcd.h"
 #include "igrf16.h"
@@ -107,10 +106,16 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
+
+  // lsm setup
   lsmCtrlReg(&hi2c3);
+
+  // gps setup
   GPSRead_t GPS = {0,0,0,0};
   HAL_Delay(10);
   HAL_UART_Receive_IT(&huart1, rx_buffer, 1);
+
+  // lcd setup
   LCD_Init();
 
   /* USER CODE END 2 */

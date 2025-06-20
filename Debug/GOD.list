@@ -35,15 +35,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  15 .debug_ranges 00000e88  00000000  00000000  0003ef50  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  0001fe5f  00000000  00000000  0003fdd8  2**0
+ 16 .debug_macro  0001fe65  00000000  00000000  0003fdd8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   000152c8  00000000  00000000  0005fc37  2**0
+ 17 .debug_line   000152bc  00000000  00000000  0005fc3d  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000bc701  00000000  00000000  00074eff  2**0
+ 18 .debug_str    000bc6f7  00000000  00000000  00074ef9  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  00131600  2**0
+ 19 .comment      00000053  00000000  00000000  001315f0  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00005958  00000000  00000000  00131654  2**2
+ 20 .debug_frame  00005958  00000000  00000000  00131644  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -4887,9 +4887,13 @@ int main(void)
   MX_I2C3_Init();
  8002faa:	f000 f8dd 	bl	8003168 <MX_I2C3_Init>
   /* USER CODE BEGIN 2 */
+
+  // lsm setup
   lsmCtrlReg(&hi2c3);
  8002fae:	4843      	ldr	r0, [pc, #268]	; (80030bc <main+0x12c>)
  8002fb0:	f7ff fe54 	bl	8002c5c <lsmCtrlReg>
+
+  // gps setup
   GPSRead_t GPS = {0,0,0,0};
  8002fb4:	f107 0318 	add.w	r3, r7, #24
  8002fb8:	2200      	movs	r2, #0
@@ -4905,6 +4909,8 @@ int main(void)
  8002fca:	493d      	ldr	r1, [pc, #244]	; (80030c0 <main+0x130>)
  8002fcc:	483d      	ldr	r0, [pc, #244]	; (80030c4 <main+0x134>)
  8002fce:	f002 fe87 	bl	8005ce0 <HAL_UART_Receive_IT>
+
+  // lcd setup
   LCD_Init();
  8002fd2:	f7ff fe18 	bl	8002c06 <LCD_Init>
   /* USER CODE END 2 */
