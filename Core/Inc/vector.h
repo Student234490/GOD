@@ -28,7 +28,6 @@ typedef struct {
 int32_t dot(Vector3D a, Vector3D b);
 Vector3D cross(Vector3D a, Vector3D b);
 Vector3D add_vector(Vector3D a, Vector3D b);
-Vector3D subtract_vector(Vector3D a, Vector3D b);
 int32_t norm(Vector3D a);
 int32_t cos_theta(Vector3D a, Vector3D b);
 Vector3D VMult(Vector3D a, int32_t b);

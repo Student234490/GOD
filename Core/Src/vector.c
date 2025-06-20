@@ -26,24 +26,12 @@ Vector3D add_vector(Vector3D a, Vector3D b){
 	return vector;
 }
 
-Vector3D scale_vector(Vector3D a, int32_t k) {
-	Vector3D vector;
-	vector.x = Mult(a.x,k);
-	vector.y = Mult(a.y,k);
-	vector.z = Mult(a.z,k);
-	return vector;
-}
-
 Vector3D VMult(Vector3D a, int32_t b){
 	Vector3D c;
 	c.x = Mult(a.x, b);
 	c.y = Mult(a.y, b);
 	c.z = Mult(a.z, b);
 	return c;
-}
-
-Vector3D subtract_vector(Vector3D a, Vector3D b){
-	return add_vector(a, scale_vector(b, convert(-1)));
 }
 
 int32_t norm(Vector3D a) {
