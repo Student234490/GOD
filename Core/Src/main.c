@@ -46,7 +46,7 @@
 
 #define USEROTATE 0
 #define USECALIBRATION 0
-#define USEGPSPRINT 0
+#define USEGPSPRINT 1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -127,12 +127,12 @@ int main(void)
   /*
    * @brief Starter GPS og UART1-interrupt, samt lidt logik for at sikre, at GPS'en starter op.
    */
-	GPSRead_t GPS = {0,0,0,0};
+	GPSRead_t GPS = {0};
 	HAL_UART_Receive_IT(&huart1, rx_buffer, 1);
 	HAL_Delay(100);
 	while (!process_uart_data(&uart_rx_buf, &GPS)) {
 	  printf("Error Not receiving UART data! \r\n");
-	  printf("Log  Waiting");
+	  printf("Log   Waiting");
 	  for (int l = 0; l < 25; l++) {
 		  HAL_Delay(40);
 		  printf(".");
@@ -160,6 +160,24 @@ int main(void)
    * @brief Prototype NOAA værdier for Lyngby.
    * Enhed: 16.16 tal, i Ladegaard (dvs. <<16 og så >>2)
    */
+
+igrf_time_t testtime = {
+		.year = 2025,
+		.month = 6,
+		.day = 20,
+		.hour = 0,
+		.minute = 0,
+		.second = 0,
+};
+
+GPSRead_t GPStest = {
+		.active = 1,
+		.latitude = convert(56),
+		.longitude = convert(13),
+		.altitude = 0,
+		.gpstime = testtime
+};
+
 Vector3D M2 = {     (17056<<14),  // North
 					-(1464<<14),    // East
   					-(47628<<14)}; // Down
@@ -185,6 +203,23 @@ Vector3D mag_avg = {convert(1), 0, 0};
 
   while (1)
   { // Begynd while loop
+
+	  	  /*
+	 	   *  GPS logik.
+	 	   */
+	 	process_uart_data(&uart_rx_buf, &GPS);
+	 	  if (USEGPSPRINT) {
+	 		  printIndex++;
+	 	  	  if (!(printIndex % 10)) {
+	 	  		  printIndex = 0;
+	 	  		  printGPS(GPS);
+	 	  		  printFixVector(M2);
+	 	  		  printf("\r\n");
+	 	  	  }
+	  }
+
+	 	  M2 = BfromGPS(GPS, IGRF_GEODETIC);
+
 	  // Læs værdierne fra magnetometeret
 	  readSensorsAndAverage(&acc_avg, &mag_avg, hi2c3);
 
@@ -201,11 +236,13 @@ Vector3D mag_avg = {convert(1), 0, 0};
 	  /*
 	   * Kalibreringstilstand, kan aktiveres.
 	   */
+
 	  if (USECALIBRATION) {
+
 		  static int32_t max_x = INT32_MIN, max_y = INT32_MIN, max_z = INT32_MIN;
 		  static int32_t min_x = INT32_MAX, min_y = INT32_MAX, min_z = INT32_MAX;
 
-		  /* bit1 = new-max, bit0 = new-min  -> 00 / 01 / 10 / 11 */
+		  // bit1 = new-max, bit0 = new-min  -> 00 / 01 / 10 / 11
 		  uint8_t fx = 0, fy = 0, fz = 0;
 
 		  if (mag_avg.x > max_x) { max_x = mag_avg.x; fx |= 0b10; }
@@ -218,18 +255,6 @@ Vector3D mag_avg = {convert(1), 0, 0};
 		  if (mag_avg.z < min_z) { min_z = mag_avg.z; fz |= 0b01; }
 	  }
 
-	  /*
-	   *  GPS logik.
-	   */
-	  process_uart_data(&uart_rx_buf, &GPS);
-	  if (USEGPSPRINT) {
-		  printIndex++;
-	  	  if (!(printIndex % 100)) {
-	  		  printIndex = 0;
-	  		  printGPS(GPS);
-	  		  printf("\r\n");
-	  	  }
-	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

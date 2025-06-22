@@ -32,8 +32,6 @@ typedef enum
   IGRF_GEOCENTRIC
 } igrf_frame_t;
 
-
 int igrf16(const igrf_time_t t, const int32_t latitude, const int32_t longitude, const int32_t altitude, igrf_frame_t f, int32_t b[3]);
-
 
 #endif /* INC_IGRF16_H_ */

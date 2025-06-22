@@ -10,6 +10,8 @@
 #include <stdio.h> // used for printing
 #include <string.h>
 #include <fixp.h>
+#include <vector.h>
+
 #define DELIM ","
 #define ASCII0 48
 
@@ -21,6 +23,15 @@ void RingBuffer_Write(RingBuffer *rb, uint8_t byte) {
     } else {
     	printf("Error! Overwriting ringbuffer.");
     }
+}
+
+int RingBuffer_Read(RingBuffer *rb, uint8_t *byte) {
+    if (rb->head == rb->tail) {
+        return 0;  // No data
+    }
+    *byte = rb->buffer[rb->tail];
+    rb->tail = (rb->tail + 1) % RING_BUF_SIZE;
+    return 1;
 }
 
 int32_t convert_DDmm_mmmm_to_fixed(char* str) {
@@ -57,13 +68,17 @@ int32_t convert_DDmm_mmmm_to_fixed(char* str) {
 
 int string_to_int(const char *str) {
     int result = 0;
+    int inverse = 1;
     while (*str) {
-        if (*str >= '0' && *str <= '9') {
-            result = result * 10 + (*str - '0');
-        }
-        str++;
+    	if (!strcmp(str, "-")) {inverse = -1;}
+    	else {
+    		if (*str >= '0' && *str <= '9') {
+				result = result * 10 + (*str - '0');
+			}
+			str++;
+    	}
     }
-    return result;
+    return result * inverse;
 }
 
 int powten(int x) {
@@ -130,14 +145,6 @@ int32_t DDDmmmmmm(char *data) {
 	return cords;
 }
 
-int RingBuffer_Read(RingBuffer *rb, uint8_t *byte) {
-    if (rb->head == rb->tail) {
-        return 0;  // No data
-    }
-    *byte = rb->buffer[rb->tail];
-    rb->tail = (rb->tail + 1) % RING_BUF_SIZE;
-    return 1;
-}
 
 void getGPGGA(char sentence[LINEBUFFERSIZE], GPSRead_t *gps) {
 	if (gps->active) {
@@ -145,10 +152,12 @@ void getGPGGA(char sentence[LINEBUFFERSIZE], GPSRead_t *gps) {
 		char *senPtr = strstr(sentence, filter); // filters the string to contain
 		if (senPtr != NULL) {
 			if (strlen(senPtr) > 40) { // if no target lock, GPGGA is only 30 long
-				char *tokPtr = strtok(senPtr, DELIM);
+			    char* tokPtr;
+			    char* rest = senPtr;
 				int i = 1; // index for going through GPGGA values
-				while (tokPtr != NULL) {
-					//printf("%i %s \r\n", i, tokPtr);
+				int32_t undulation = 0;
+				int32_t mssheight = 0;
+				while ((tokPtr = strtok_r(rest, DELIM, &rest))) {
 					switch (i) { // https://docs.novatel.com/OEM7/Content/Logs/GPGGA.htm
 						case 3: {  // latitude / breddegrad [DDmm.mmmm]
 							gps->latitude = DDmmmmmm(tokPtr);
@@ -181,7 +190,11 @@ void getGPGGA(char sentence[LINEBUFFERSIZE], GPSRead_t *gps) {
 							break;
 						}
 						case 10: { // altitude
-							gps->altitude = Altxx(tokPtr);
+							mssheight = Altxx(tokPtr);
+							break;
+						}
+						case 12: {
+							undulation = Altxx(tokPtr);
 							break;
 						}
 						default: {
@@ -191,14 +204,49 @@ void getGPGGA(char sentence[LINEBUFFERSIZE], GPSRead_t *gps) {
 					i++;
 					tokPtr = strtok(NULL, DELIM); // required to progress strtok tokens
 				}
+				gps->altitude = mssheight + undulation; // ellipsoid altitude
 			}
 			else {
 				printf("Error: GPGGA too short \r\n");
 				gps->active = 0;
 			}
 		}
-		else {
-			//printf("Line skip, no %s: %s \r\n", filter, sentence);
+		else { // filtered string was empty, so check for GPGGA for getting date info
+			char filter[] = "$GPRMC";
+			char *senPtr = strstr(sentence, filter); // filters the string to contain
+			if (senPtr != NULL) {
+				char *tokPtr = strtok(senPtr, DELIM);
+				int i = 1; // index for going through GPGGA values
+				while (tokPtr != NULL) {
+					if (i == 10) {
+						igrf_time_t newgpstime = {0};
+						int j;
+						for (j = 0; j <= 2; j++) {
+							char temp[3] = "xx\0";
+							strncpy(temp, tokPtr + (j << 1), 2);
+							switch (j) {
+							case 0:
+								newgpstime.day = string_to_int(temp);
+								break;
+							case 1:
+								newgpstime.month = string_to_int(temp);
+								break;
+							case 2:
+								newgpstime.year = 2000 + string_to_int(temp);
+								break;
+							default:
+								break;
+							}
+						}
+						gps->gpstime = newgpstime;
+					}
+					i++;
+					tokPtr = strtok(NULL, DELIM); // required to progress strtok tokens
+				}
+			}
+			else { // no information of relevance
+				//printf("Line skip, no %s: %s \r\n", filter, sentence);
+			}
 		}
 	}
 	else {
@@ -245,7 +293,7 @@ int process_uart_data(RingBuffer *rb, GPSRead_t *gps) {
 
         if (c == '\n') {
             sentence[indx] = '\0';  // Null-terminate the string
-            printf("Log:   UART Sentence received \r\n");
+            printf("Log:   UART Sentence received: %s \r", sentence);
             getGPGGA(sentence, gps); // den her linje er lidt cray-cray @rasmus ladegaard
             indx = 0;  // Reset for next line
             retval = 1;
@@ -266,4 +314,33 @@ void printGPS(GPSRead_t GPS) {
 	} else {
 		printf("Error: GPS inactive \r\n");
 	}
+}
+
+Vector3D BfromGPS(GPSRead_t GPS, igrf_frame_t frame) {
+	if (frame == IGRF_GEOCENTRIC) {
+		Vector3D retval;
+		retval = BfromGPS_gcc(GPS);
+		return retval;
+	}
+	else {
+		Vector3D retval;
+		retval = BfromGPS_gdt(GPS);
+		return retval;
+	}
+}
+
+Vector3D BfromGPS_gcc(GPSRead_t GPS) {
+	// get radius from GPS height
+	int32_t radius = 417542963 + GPS.altitude;
+	int32_t igrfvalue[3];
+	igrf16(GPS.gpstime, GPS.latitude, GPS.longitude, radius, IGRF_GEOCENTRIC, igrfvalue);
+	Vector3D retval = {igrfvalue[0], -igrfvalue[1], -igrfvalue[2]};
+	return retval;
+}
+
+Vector3D BfromGPS_gdt(GPSRead_t GPS) {
+	int32_t igrfvalue[3];
+	igrf16(GPS.gpstime, GPS.latitude, GPS.longitude, GPS.altitude, IGRF_GEODETIC, igrfvalue);
+	Vector3D result = {igrfvalue[0], -igrfvalue[1], -igrfvalue[2]};
+	return result;
 }

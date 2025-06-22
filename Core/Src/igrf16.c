@@ -12,8 +12,8 @@
 #include <stdio.h>
 #define FIXED_POINT_SCALE (1 << 16)
 
-#define wgs84_f 220;
-#define wgs84_e2 439;
+#define wgs84_f 220
+#define wgs84_e2 439
 #define wgs84_a 417997586 // 6378.137;
 #define wgs84_b 416596119 // wgs84_a * (1 - wgs84_f), wgs84_f = 220 # 1 / 298.257223563;
 
@@ -87,33 +87,27 @@ int32_t get_years16(const igrf_time_t dt)
 int igrf16(const igrf_time_t t, const int32_t latitude, const int32_t longitude, const int32_t altitude, igrf_frame_t f, int32_t b[3])
 {
   const int32_t a = 417542963; // 6371.2;                  // Radius of Earth [km]
-  const int32_t theta = M16_PI_2 - MULT(latitude, D162R); // Colattitude [rad]
   const int32_t phi = MULT(longitude, D162R);            // Longitude [rad]
+  const int32_t latrad = MULT(latitude, D162R); // Latitude [rad]
 
-  int32_t ct = cosrad(theta);
-  int32_t st = sinrad(theta);
-  int32_t cd, sd, r;
-
+  int32_t theta, r; // geocentric colatitude and geocentric radius
   // Geodetic to geocentric conversion
   // https://github.com/wb-bgs/m_IGRF
   if (f == IGRF_GEODETIC)
   {
-    // Radius
-    const int32_t h = altitude;
-    const int32_t rho = hypot(MULT(wgs84_a, st), MULT(wgs84_b, ct));
-    r = squareroot64(h * h + 2 * h * rho + (pow(wgs84_a, 4) * st * st + pow(wgs84_b, 4) * ct * ct) / (rho * rho));
+	  // equation 3b
+	 r = FIX16_DIV(altitude, convert(1000)) + MULT(wgs84_a, convert(1) - MULT(MULT(Rational(1,2), wgs84_f),cosrad(latrad << 1) - convert(1)));
 
-    // Latitude
-    cd = DIV((h + rho), r);
-    sd = (wgs84_a * wgs84_a - wgs84_b * wgs84_b) / rho * ct * st / r;
-    const double temp = ct;
-    ct = cd * ct - sd * st;
-    st = cd * st + sd * temp;
+	 // equation 3a, with input latitude == geodetic latitude
+	 theta = M16_PI_2 - latrad + MULT(wgs84_f, sinrad(latrad << 1));
   }
   else {
-	 r = altitude;
+	  // assumes altitude is geocentric radius, latitude is geocentric latitude
+	 r = altitude; // same as input
+	 theta = M16_PI_2 - latrad; // colatitude
   }
-
+  int32_t ct = cosrad(theta);
+  int32_t st = sinrad(theta);
 
   // Avoid singularity on pole
   const int32_t epsilon = 1;
@@ -227,7 +221,7 @@ int igrf16(const igrf_time_t t, const int32_t latitude, const int32_t longitude,
           bt -= MULT(temp, dpnm);
           bp -= MULT(ar_pow[n - 1], MULT(convert(m), MULT((-gsin + hcos), pnm)));
         }
-        printf("%i,%i,%i,%f,%f,%f,%f,%f,%f,%f\r\n", n, m, k, fixed_to_float(g), fixed_to_float(h), fixed_to_float(pnm),fixed_to_float(dpnm), fixed_to_float(br), fixed_to_float(bt), fixed_to_float(bp));
+        //printf("%i,%i,%i,%f,%f,%f,%f,%f,%f,%f\r\n", n, m, k, fixed_to_float(g), fixed_to_float(h), fixed_to_float(pnm),fixed_to_float(dpnm), fixed_to_float(br), fixed_to_float(bt), fixed_to_float(bp));
       }
     }
   }
@@ -238,14 +232,6 @@ int igrf16(const igrf_time_t t, const int32_t latitude, const int32_t longitude,
   b[0] = -bt;
   b[1] = bp;
   b[2] = -br;
-
-  // Geocentric to geodetic NED
-  if (f == IGRF_GEODETIC)
-  {
-    int32_t temp = b[0];
-    b[0] = MULT(cd, b[0]) + MULT(sd, b[2]);
-    b[2] = MULT(cd, b[2]) - MULT(sd, temp);
-  }
 
   return 1;
 }
