@@ -190,8 +190,7 @@ Vector3D g2 = { 0, 0, 17000};
  * @brief Kan tilføjes, så man kan rotere til den ønskede orientering.
  */
 if (USEROTATE) {
-	M2 = rotateZ14(&M2, convert(90));
-	g2 = rotateZ14(&g2, convert(90));
+	rotate_ref_vectors(&g2, &M2, convert(0), convert(0), convert(0));
 }
 
 int printIndex = 0;
