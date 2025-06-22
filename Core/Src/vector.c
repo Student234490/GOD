@@ -222,36 +222,42 @@ int32_t norm_q16(Vector3D a) {
     return (int32_t)isqrt_u64(sum);
 }
 
-static const int32_t DEG2RAD_Q16 = 1144;   /* convert(3.14159265359/180) */
+static const int32_t DEG2RAD_Q16 = 1144; //pi/180 in Q16.16
 
-/* =====================================================================
- *  rotateZ14  – rotate v about +Z by +heading (right-hand rule)
- *    v14          : pointer to input vector (Q18.14)
- *    headingDegQ16: desired rotation in degrees, Q16.16
- *  returns        : rotated vector, still Q18.14
- * ===================================================================*/
-Vector3D rotateZ14(const Vector3D *v14, int32_t headingDegQ16)
+
+Vector3D rotateZ14(Vector3D *v, int32_t yaw, int32_t pitch, int32_t roll)
 {
-    /* 1. angle → radians (Q16.16) ------------------------------------ */
-    int32_t radQ16 = FIX16_MULT(headingDegQ16, DEG2RAD_Q16);
+    /* sin / cos in Q16.16 */
+    int32_t cyaw   = cosrad(yaw),   syaw   = sinrad(yaw);
+    int32_t cpitch = cosrad(pitch), spitch = sinrad(pitch);
+    int32_t croll  = cosrad(roll),  sroll  = sinrad(roll);
 
-    /* 2. lookup / compute cos & sin  (Q16.16) ------------------------ */
-    int32_t c =  cosrad(radQ16);    /* cos θ */
-    int32_t s =  sinrad(radQ16);     /* sin θ */
+    /* Rx(roll) ------------------------------------------------------- */
+    int32_t y1 = FIX16_MULT(v->y, croll) - FIX16_MULT(v->z, sroll);
+    int32_t z1 = FIX16_MULT(v->y, sroll) + FIX16_MULT(v->z, croll);
+    int32_t x1 = v->x;
 
-    /* 3. rotate the horizontal part  --------------------------------- */
-    /*    x' =  x·c – y·s                                              */
-    /*    y' =  x·s + y·c                                              */
-    /*    z  unchanged                                                 */
-    int64_t xc = (int64_t)v14->x * c;      /* Q18.14 × Q16.16 → Q34.30 */
-    int64_t ys = (int64_t)v14->y * s;
-    int64_t xs = (int64_t)v14->x * s;
-    int64_t yc = (int64_t)v14->y * c;
+    /* Ry(pitch) ------------------------------------------------------ */
+    int32_t x2 = FIX16_MULT(x1, cpitch) + FIX16_MULT(z1, spitch);
+    int32_t z2 = FIX16_MULT(-x1, spitch) + FIX16_MULT(z1, cpitch);
+    int32_t y2 = y1;
 
-    Vector3D out;
-    out.x = (int32_t)((xc - ys) >> 16);    /* back to Q18.14 */
-    out.y = (int32_t)((xs + yc) >> 16);
-    out.z = v14->z;                        /* Z untouched    */
+    /* Rz(yaw) -------------------------------------------------------- */
+    int32_t x3 = FIX16_MULT(x2, cyaw) - FIX16_MULT(y2, syaw);
+    int32_t y3 = FIX16_MULT(x2, syaw) + FIX16_MULT(y2, cyaw);
+
+    Vector3D out = { x3, y3, z2 };
     return out;
+}
+
+void rotate_ref_vectors(Vector3D *g, Vector3D *m,
+                        int32_t yaw_deg, int32_t pitch_deg, int32_t roll_deg)
+{
+    int32_t yaw   = FIX16_MULT(yaw_deg,   DEG2RAD_Q16);
+    int32_t pitch = FIX16_MULT(pitch_deg, DEG2RAD_Q16);
+    int32_t roll  = FIX16_MULT(roll_deg,  DEG2RAD_Q16);
+
+    *g = rotateZ14(g, yaw, pitch, roll);
+    *m = rotateZ14(m, yaw, pitch, roll);
 }
 
