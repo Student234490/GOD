@@ -102,13 +102,13 @@ void LCD_PrintAngle(int32_t angle) {
 void LCD_PrintVector(Vector3D InputVector) {
 	LCD_SetCursor(1, 0);
 	  LCD_PrintAngle(inconvert(InputVector.x));
-	  HAL_Delay(5); //vigtigt der skal være delay ellers virker det ikke at rykke cursor
+	  HAL_Delay(2); //vigtigt der skal være delay ellers virker det ikke at rykke cursor
 
 	  LCD_SetCursor(1, 6);
 	  LCD_PrintAngle(inconvert(InputVector.y));
-	  HAL_Delay(5);
+	  HAL_Delay(2);
 
 	  LCD_SetCursor(1, 12);
 	  LCD_PrintAngle(inconvert(InputVector.z));
-	  HAL_Delay(5);
+	  HAL_Delay(2);
 }
