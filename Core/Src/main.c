@@ -184,7 +184,7 @@ Vector3D M2 = {     (17056<<14),  // North
 /*
  * @brief Prototype magnetometer værdier.
  */
-Vector3D g2 = { 0, 0, 17000};
+Vector3D g2 = { 0, 0, -16384};
 
 /**
  * @brief Kan tilføjes, så man kan rotere til den ønskede orientering.
@@ -217,10 +217,14 @@ Vector3D mag_avg = {convert(1), 0, 0};
 	 	  	  }
 	  }
 
-	 	  M2 = BfromGPS(GPS, IGRF_GEODETIC);
+	 	  M2 = BfromGPS(GPS, IGRF_GEOCENTRIC);
 
 	  // Læs værdierne fra magnetometeret
+	  mag_avg = lsmMagRead(&hi2c3);
+	  printf("\r\n%ld, %ld, %ld, ", mag_avg.x, mag_avg.y, mag_avg.z);
 	  readSensorsAndAverage(&acc_avg, &mag_avg, hi2c3);
+	  printf("%ld, %ld, %ld, ", mag_avg.x, mag_avg.y, mag_avg.z);
+	  printf("%ld, %ld, %ld\r\n", acc_avg.x, acc_avg.y, acc_avg.z);
 
 	  // Beregn TRIAD rotationsmatrice på RotationMatrix
 	  triad(mag_avg,acc_avg,M2,g2, &RotationMatrix);

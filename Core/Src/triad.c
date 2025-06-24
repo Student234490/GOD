@@ -119,7 +119,7 @@ void rot2eulerZYX(const Matrix3x3* R, Vector3D* angles) {
     if (rzx > convert(1))  rzx = convert(1);
 
     // Pitch = -asin(R->z.x)
-    int32_t pitch_rad = -fix_asin(rzx);  // <-- uses your LUT
+    int32_t pitch_rad = -fix_asin(rzx);
     int32_t cos_pitch = cosrad(pitch_rad);
 
     int32_t rad2deg = FIX16_DIV(convert(180), PI16);
@@ -128,19 +128,19 @@ void rot2eulerZYX(const Matrix3x3* R, Vector3D* angles) {
     int32_t roll_deg = 0;
     int32_t yaw_deg = 0;
 
-    // Gimbal lock threshold (approx. 0.001 in Q16.16)
-    #define GIMBAL_THRESHOLD 30
+    // Gimbal lock threshold (approx. 0.01 in Q16.16)
+    #define GIMBAL_THRESHOLD 327
 
     if (abs(cos_pitch) > GIMBAL_THRESHOLD) {
         // No gimbal lock
-        int32_t roll_rad = fix_atan2(R->z.y, R->z.z);  // <-- uses your LUT
-        int32_t yaw_rad  = fix_atan2(R->y.x, R->x.x);  // <-- uses your LUT
+        int32_t roll_rad = fix_atan2(R->z.y, R->z.z);
+        int32_t yaw_rad  = fix_atan2(R->y.x, R->x.x);
 
         roll_deg = FIX16_MULT(roll_rad, rad2deg);
         yaw_deg  = FIX16_MULT(yaw_rad,  rad2deg);
     } else {
         // Gimbal lock fallback
-        int32_t yaw_rad = fix_atan2(-R->x.y, R->y.y);  // <-- uses your LUT
+        int32_t yaw_rad = fix_atan2(-R->x.y, R->y.y);
         yaw_deg = FIX16_MULT(yaw_rad, rad2deg);
         roll_deg = 0;
     }

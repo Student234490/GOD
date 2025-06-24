@@ -122,9 +122,9 @@ void readSensorsAndAverage(Vector3D* acc_avg, Vector3D* mag_avg, I2C_HandleTypeD
     mag_raw.z =  mraw.z + 3376; //+ 3200;    Zmag →  Zbody
     */
 
-	mag_raw.x =  convert(mraw.x) - convert(2832 + 54); //+ 2897;   /* +Ymag → +Xbody */
-    mag_raw.y =  convert(mraw.y) + convert(3259 - 192); //2486.0; //+ 3352;   /* –Xmag → +Ybody */
-	mag_raw.z =  convert(mraw.z) + convert(4243 - 80); //+ 3200;   /*  Zmag →  Zbody */
+	mag_raw.x =  convert(mraw.x) - convert(2832 + 54 + 1200 + 250); //+ 2897;   /* +Ymag → +Xbody */
+    mag_raw.y =  -convert(mraw.y) - convert(3259 - 192 + 200); //2486.0; //+ 3352;   /* –Xmag → +Ybody */
+	mag_raw.z =  +convert(mraw.z) + convert(4243 - 80 - 2415 + 750 - 50); //+ 3200;   /*  Zmag →  Zbody */
 
 	mag_raw = MVMult(softIron, mag_raw);
 
@@ -132,7 +132,7 @@ void readSensorsAndAverage(Vector3D* acc_avg, Vector3D* mag_avg, I2C_HandleTypeD
 
     acc_raw.x = acc_raw.x + 376;
     acc_raw.y = acc_raw.y + 282 + 133;
-    acc_raw.z = acc_raw.z - 738;
+    acc_raw.z = - acc_raw.z + 738;
 
     /* 3. promote to Q16.16  (raw × 4  ==  << 2) ------------------------ */
     Vector3D acc_q16 = { acc_raw.x,
