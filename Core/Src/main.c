@@ -44,9 +44,13 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define USEROTATE 0
+#define USEROTATE 0 //use rotate 1 for on 0 for off
+#define YAW 0 //deg rotation compared to geographic north, and flush with the eath surface
+#define PITCH 0 //deg rotation compared to geographic north, and flush with the eath surface
+#define ROLL 0 //deg rotation compared to geographic north, and flush with the eath surface
 #define USECALIBRATION 0
 #define USEGPSPRINT 1
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -190,7 +194,7 @@ Vector3D g2 = { 0, 0, -16384};
  * @brief Kan tilføjes, så man kan rotere til den ønskede orientering.
  */
 if (USEROTATE) {
-	rotate_ref_vectors(&g2, &M2, convert(0), convert(0), convert(0));
+	rotate_ref_vectors(&g2, &M2, convert(YAW), convert(PITCH), convert(ROLL));
 }
 
 int printIndex = 0;
